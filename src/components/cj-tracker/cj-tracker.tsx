@@ -309,7 +309,7 @@ export default function CJTracker({
                     </p>
 
                     {/* Emoji rating buttons */}
-                    <div className="flex gap-1">
+                    <div className="grid grid-cols-4 gap-1">
                       {RATINGS.map((r) => {
                         const selected = data?.rating?.value === r.value;
                         return (
@@ -317,13 +317,13 @@ export default function CJTracker({
                             key={r.value}
                             onClick={() => selectRating(step.id, r)}
                             title={r.label}
-                            className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-md border text-sm transition-all ${
+                            className={`flex flex-col items-center gap-0.5 py-1.5 rounded-md border text-sm transition-all ${
                               selected
                                 ? 'border-amber-400 bg-amber-50 shadow-sm scale-105'
                                 : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50'
                             }`}
                           >
-                            <span>{r.emoji}</span>
+                            <span className="text-base leading-none">{r.emoji}</span>
                             <span className="text-[9px] leading-tight text-stone-500 truncate w-full text-center">
                               {r.label}
                             </span>
