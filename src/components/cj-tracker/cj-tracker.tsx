@@ -7,12 +7,12 @@ import {
   ChevronUp,
   Send,
   Check,
-  X,
   ClipboardList,
   Loader2,
   User,
   Mail,
   AlertCircle,
+  Lock,
 } from 'lucide-react';
 
 // ─── Props ───
@@ -39,7 +39,7 @@ function buildReport(
   scenarioName: string,
 ): string {
   const lines: string[] = [
-    '\u2550\u2550\u2550 Задания для прототипа: Отчёт \u2550\u2550\u2550',
+    '═══ Задания для прототипа: Отчёт ═══',
     `Дата: ${formatDate()}`,
     `Сценарий: ${scenarioName}`,
   ];
@@ -72,7 +72,7 @@ export default function CJTracker({
   onChange,
 }: CJTrackerProps) {
   const [panelOpen, setPanelOpen] = useState(true);
-  const [expandedStep, setExpandedStep] = useState<string | null>(null);
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [participantName, setParticipantName] = useState('');
   const [participantEmail, setParticipantEmail] = useState('');
   const [state, setState] = useState<StepsState>(() => {
@@ -88,21 +88,12 @@ export default function CJTracker({
   // Notify parent
   useEffect(() => { onChange?.(state); }, [state, onChange]);
 
-  // Close rating panel on outside click (desktop only)
-  useEffect(() => {
-    if (!expandedStep) return;
-    function handleClick(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setExpandedStep(null);
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [expandedStep]);
-
   // ── Computed ──
   const allRated = steps.every((s) => state[s.id]?.rating !== null);
   const ratedCount = steps.filter((s) => state[s.id]?.rating !== null).length;
+  const isLastStep = activeStepIndex === steps.length - 1;
+  const currentStep = steps[activeStepIndex];
+  const currentData = currentStep ? state[currentStep.id] : null;
 
   // ── Actions ──
   const selectRating = useCallback((stepId: string, rating: CJRating | null) => {
@@ -115,6 +106,29 @@ export default function CJTracker({
   const setComment = useCallback((stepId: string, comment: string) => {
     setState((prev) => ({ ...prev, [stepId]: { ...prev[stepId], comment } }));
   }, []);
+
+  // Auto-advance after rating current step
+  useEffect(() => {
+    if (!currentStep) return;
+    const rated = state[currentStep.id]?.rating !== null;
+    if (rated && !isLastStep && !submitted) {
+      const timer = setTimeout(() => {
+        setActiveStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [state, currentStep, isLastStep, steps.length, submitted]);
+
+  // Click on completed step — allow reviewing (set active index back)
+  const handleStepClick = useCallback((idx: number) => {
+    if (submitted) return;
+    const step = steps[idx];
+    // Only allow clicking on completed steps or the active one
+    if (state[step.id]?.rating !== null) {
+      setActiveStepIndex(idx);
+    }
+    // Locked steps do nothing
+  }, [steps, state, submitted]);
 
   const handleSubmit = useCallback(async () => {
     if (!allRated || submitting) return;
@@ -148,9 +162,12 @@ export default function CJTracker({
     }
   }, [allRated, submitting, participantName, participantEmail, steps, state, scenarioName]);
 
-  // ── Step states ──
-  const isRated = (id: string) => state[id]?.rating !== null;
-  const isCurrent = (id: string) => expandedStep === id;
+  // ── Step classification ──
+  const getStepStatus = (idx: number): 'completed' | 'active' | 'locked' => {
+    if (state[steps[idx].id]?.rating !== null) return 'completed';
+    if (idx === activeStepIndex) return 'active';
+    return 'locked';
+  };
 
   // ── Render ──
   return (
@@ -214,7 +231,7 @@ export default function CJTracker({
           <div className="flex items-center gap-2 text-[10px] text-stone-400">
             <div className="flex-1 h-1 rounded-full bg-stone-200 overflow-hidden">
               <div
-                className="h-full bg-amber-400 rounded-full transition-all duration-300"
+                className="h-full bg-amber-400 rounded-full transition-all duration-500"
                 style={{ width: `${steps.length > 0 ? (ratedCount / steps.length) * 100 : 0}%` }}
               />
             </div>
@@ -223,58 +240,75 @@ export default function CJTracker({
 
           {/* Steps list */}
           {steps.map((step, idx) => {
-            const rated = isRated(step.id);
-            const current = isCurrent(step.id);
+            const status = getStepStatus(idx);
             const data = state[step.id];
+            const isCompleted = status === 'completed';
+            const isActive = status === 'active';
+            const isLocked = status === 'locked';
 
             return (
-              <div key={step.id} className="rounded-md border border-stone-200 bg-white overflow-hidden">
-                {/* Step badge */}
+              <div
+                key={step.id}
+                className={`rounded-md border overflow-hidden transition-opacity ${
+                  isLocked
+                    ? 'border-stone-200/60 bg-stone-100/50 opacity-50'
+                    : isActive
+                    ? 'border-amber-300 bg-white ring-1 ring-amber-200'
+                    : 'border-stone-200 bg-white hover:bg-stone-50'
+                }`}
+              >
+                {/* Step header */}
                 <button
-                  onClick={() => setExpandedStep((prev) => (prev === step.id ? null : step.id))}
+                  onClick={() => handleStepClick(idx)}
+                  disabled={isLocked}
                   className={`w-full flex items-center gap-2 px-2.5 py-2 text-left text-xs transition-colors ${
-                    current
-                      ? 'bg-amber-50 border-b border-stone-200'
-                      : 'hover:bg-stone-50'
-                  }`}
+                    isActive ? 'bg-amber-50/50' : ''
+                  } ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   {/* Number badge */}
                   <span
-                    className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border transition-colors ${
-                      rated
+                    className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border transition-all ${
+                      isCompleted
                         ? 'bg-emerald-100 border-emerald-400 text-emerald-700'
-                        : current
+                        : isActive
                         ? 'bg-amber-100 border-amber-400 text-amber-700'
                         : 'bg-stone-100 border-stone-300 text-stone-400'
                     }`}
                   >
-                    {rated ? '✓' : idx + 1}
+                    {isCompleted ? '\u2713' : isLocked ? <Lock className="h-2.5 w-2.5" /> : idx + 1}
                   </span>
 
-                  <span className={`flex-1 truncate ${current ? 'font-semibold text-stone-800' : 'text-stone-600'}`}>
+                  <span className={`flex-1 truncate ${
+                    isActive ? 'font-semibold text-stone-800' :
+                    isCompleted ? 'text-stone-500' :
+                    'text-stone-400'
+                  }`}>
                     {step.label}
                   </span>
 
-                  {rated && data?.rating && (
+                  {isCompleted && data?.rating && (
                     <span className="shrink-0 text-sm" title={data.rating.label}>{data.rating.emoji}</span>
                   )}
 
-                  {current ? (
-                    <X className="shrink-0 h-3 w-3 text-stone-400" />
-                  ) : (
-                    <ChevronDown className={`shrink-0 h-3 w-3 text-stone-400 transition-transform ${current ? 'rotate-180' : ''}`} />
+                  {isActive && (
+                    <ChevronDown className="shrink-0 h-3 w-3 text-amber-500 rotate-180" />
                   )}
                 </button>
 
-                {/* Rating panel */}
-                {current && (
+                {/* Rating panel — only for active step */}
+                {isActive && !submitted && (
                   <div className="px-2.5 pb-2.5 pt-1 space-y-2 border-t border-stone-100">
+                    {/* Step number label */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold text-amber-600">ЗАДАНИЕ {idx + 1} ИЗ {steps.length}</span>
+                    </div>
+
                     {/* Task description */}
-                    <p className="text-[11px] text-stone-500 leading-relaxed">
+                    <p className="text-[11px] text-stone-600 leading-relaxed">
                       {step.description}
                     </p>
 
-                    {/* Emoji buttons */}
+                    {/* Emoji rating buttons */}
                     <div className="flex gap-1">
                       {RATINGS.map((r) => {
                         const selected = data?.rating?.value === r.value;
@@ -306,6 +340,20 @@ export default function CJTracker({
                       className="w-full text-xs p-2 rounded-md border border-stone-200 bg-stone-50 text-stone-700 placeholder:text-stone-400 resize-none focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400"
                       rows={3}
                     />
+                  </div>
+                )}
+
+                {/* Completed step — show comment preview on click */}
+                {isCompleted && activeStepIndex === idx && (
+                  <div className="px-2.5 pb-2 pt-1 border-t border-stone-100">
+                    <p className="text-[10px] text-stone-500 leading-relaxed">
+                      {step.description}
+                    </p>
+                    {data?.comment?.trim() && (
+                      <p className="text-[11px] text-stone-600 mt-1.5 italic">
+                        “{data.comment.trim()}”
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -347,7 +395,9 @@ export default function CJTracker({
 
             {!allRated && !submitted && (
               <p className="text-[10px] text-stone-400 text-center">
-                Оцените все задания, чтобы отправить отчёт
+                {allRated
+                  ? ''
+                  : `Оцените все задания, чтобы отправить отчёт`}
               </p>
             )}
           </div>
