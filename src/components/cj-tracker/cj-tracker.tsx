@@ -5,11 +5,14 @@ import { RATINGS, type CJStep, type CJRating, type StepsState } from './types';
 import {
   ChevronDown,
   ChevronUp,
-  Download,
-  Copy,
+  Send,
   Check,
   X,
   ClipboardList,
+  Loader2,
+  User,
+  Mail,
+  AlertCircle,
 } from 'lucide-react';
 
 // ─── Props ───
@@ -29,21 +32,34 @@ function formatDate(): string {
 }
 
 function buildReport(
+  participantName: string,
+  participantEmail: string,
   steps: CJStep[],
   state: StepsState,
   scenarioName: string,
 ): string {
   const lines: string[] = [
-    '═══ CJ-трекер: Отчёт ═══',
+    '\u2550\u2550\u2550 Задания для прототипа: Отчёт \u2550\u2550\u2550',
     `Дата: ${formatDate()}`,
     `Сценарий: ${scenarioName}`,
-    '',
   ];
+  if (participantName.trim()) {
+    lines.push(`Участник: ${participantName.trim()}`);
+  }
+  if (participantEmail.trim()) {
+    lines.push(`Почта: ${participantEmail.trim()}`);
+  }
+  lines.push('');
+  lines.push('── Задания и оценки ──');
+  lines.push('');
   steps.forEach((s, i) => {
     const d = state[s.id];
-    lines.push(`Шаг ${i + 1}: ${s.label}`);
-    lines.push(`Оценка: ${d?.rating ? `${d.rating.emoji} ${d.rating.label}` : 'не оценён'}`);
-    lines.push(`Комментарий: ${d?.comment?.trim() || '—'}`);
+    lines.push(`Задание ${i + 1}: ${s.label}`);
+    lines.push(`  Описание: ${s.description}`);
+    lines.push(`  Оценка: ${d?.rating ? `${d.rating.emoji} ${d.rating.label}` : 'не оценено'}`);
+    if (d?.comment?.trim()) {
+      lines.push(`  Комментарий: ${d.comment.trim()}`);
+    }
     lines.push('');
   });
   return lines.join('\n');
@@ -57,12 +73,16 @@ export default function CJTracker({
 }: CJTrackerProps) {
   const [panelOpen, setPanelOpen] = useState(true);
   const [expandedStep, setExpandedStep] = useState<string | null>(null);
+  const [participantName, setParticipantName] = useState('');
+  const [participantEmail, setParticipantEmail] = useState('');
   const [state, setState] = useState<StepsState>(() => {
     const init: StepsState = {};
     steps.forEach((s) => { init[s.id] = { rating: null, comment: '' }; });
     return init;
   });
-  const [copied, setCopied] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Notify parent
@@ -80,6 +100,10 @@ export default function CJTracker({
     return () => document.removeEventListener('mousedown', handleClick);
   }, [expandedStep]);
 
+  // ── Computed ──
+  const allRated = steps.every((s) => state[s.id]?.rating !== null);
+  const ratedCount = steps.filter((s) => state[s.id]?.rating !== null).length;
+
   // ── Actions ──
   const selectRating = useCallback((stepId: string, rating: CJRating | null) => {
     setState((prev) => ({
@@ -92,23 +116,37 @@ export default function CJTracker({
     setState((prev) => ({ ...prev, [stepId]: { ...prev[stepId], comment } }));
   }, []);
 
-  const handleExportTxt = useCallback(() => {
-    const report = buildReport(steps, state, scenarioName);
-    const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `cj-report-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [steps, state, scenarioName]);
-
-  const handleCopy = useCallback(async () => {
-    const report = buildReport(steps, state, scenarioName);
-    await navigator.clipboard.writeText(report);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [steps, state, scenarioName]);
+  const handleSubmit = useCallback(async () => {
+    if (!allRated || submitting) return;
+    setSubmitting(true);
+    setSubmitError('');
+    try {
+      const report = buildReport(participantName, participantEmail, steps, state, scenarioName);
+      const payload = {
+        participantName: participantName.trim(),
+        participantEmail: participantEmail.trim(),
+        scenarioName,
+        steps: steps.map((s) => ({ id: s.id, label: s.label, description: s.description })),
+        state,
+        reportText: report,
+        submittedAt: new Date().toISOString(),
+      };
+      const res = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err || 'Ошибка сервера');
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+    } finally {
+      setSubmitting(false);
+    }
+  }, [allRated, submitting, participantName, participantEmail, steps, state, scenarioName]);
 
   // ── Step states ──
   const isRated = (id: string) => state[id]?.rating !== null;
@@ -125,23 +163,9 @@ export default function CJTracker({
       <div className="flex items-center justify-between px-3 py-2 border-b border-stone-200 bg-stone-100 shrink-0">
         <div className="flex items-center gap-1.5 text-xs text-stone-500">
           <ClipboardList className="h-3.5 w-3.5" />
-          <span className="font-semibold text-stone-600">CJ-трекер</span>
+          <span className="font-semibold text-stone-600">Задания для прототипа</span>
         </div>
         <div className="flex items-center gap-1">
-          <button
-            onClick={handleCopy}
-            className="p-1 rounded hover:bg-stone-200 transition-colors text-stone-500 hover:text-stone-700"
-            title="Копировать отчёт"
-          >
-            {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-          </button>
-          <button
-            onClick={handleExportTxt}
-            className="p-1 rounded hover:bg-stone-200 transition-colors text-stone-500 hover:text-stone-700"
-            title="Скачать отчёт .txt"
-          >
-            <Download className="h-3.5 w-3.5" />
-          </button>
           <button
             onClick={() => setPanelOpen((p) => !p)}
             className="p-1 rounded hover:bg-stone-200 transition-colors text-stone-500 hover:text-stone-700"
@@ -162,6 +186,41 @@ export default function CJTracker({
       {/* ── Body ── */}
       {panelOpen && (
         <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2">
+          {/* Participant info */}
+          <div className="space-y-1.5 pb-2 border-b border-stone-200">
+            <div className="flex items-center gap-2">
+              <User className="h-3 w-3 text-stone-400 shrink-0" />
+              <input
+                type="text"
+                value={participantName}
+                onChange={(e) => setParticipantName(e.target.value)}
+                placeholder="Имя (необязательно)"
+                className="flex-1 text-xs px-2 py-1.5 rounded-md border border-stone-200 bg-white text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Mail className="h-3 w-3 text-stone-400 shrink-0" />
+              <input
+                type="email"
+                value={participantEmail}
+                onChange={(e) => setParticipantEmail(e.target.value)}
+                placeholder="Почтовый адрес (необязательно)"
+                className="flex-1 text-xs px-2 py-1.5 rounded-md border border-stone-200 bg-white text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400"
+              />
+            </div>
+          </div>
+
+          {/* Progress indicator */}
+          <div className="flex items-center gap-2 text-[10px] text-stone-400">
+            <div className="flex-1 h-1 rounded-full bg-stone-200 overflow-hidden">
+              <div
+                className="h-full bg-amber-400 rounded-full transition-all duration-300"
+                style={{ width: `${steps.length > 0 ? (ratedCount / steps.length) * 100 : 0}%` }}
+              />
+            </div>
+            <span>{ratedCount}/{steps.length}</span>
+          </div>
+
           {/* Steps list */}
           {steps.map((step, idx) => {
             const rated = isRated(step.id);
@@ -210,6 +269,11 @@ export default function CJTracker({
                 {/* Rating panel */}
                 {current && (
                   <div className="px-2.5 pb-2.5 pt-1 space-y-2 border-t border-stone-100">
+                    {/* Task description */}
+                    <p className="text-[11px] text-stone-500 leading-relaxed">
+                      {step.description}
+                    </p>
+
                     {/* Emoji buttons */}
                     <div className="flex gap-1">
                       {RATINGS.map((r) => {
@@ -248,22 +312,44 @@ export default function CJTracker({
             );
           })}
 
-          {/* Export buttons (bottom) */}
-          <div className="flex gap-2 pt-1">
-            <button
-              onClick={handleCopy}
-              className="flex-1 flex items-center justify-center gap-1.5 text-xs py-2 rounded-md border border-stone-300 bg-white text-stone-600 hover:bg-stone-100 transition-colors"
-            >
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-              {copied ? 'Скопировано' : 'Копировать'}
-            </button>
-            <button
-              onClick={handleExportTxt}
-              className="flex-1 flex items-center justify-center gap-1.5 text-xs py-2 rounded-md border border-stone-300 bg-white text-stone-600 hover:bg-stone-100 transition-colors"
-            >
-              <Download className="h-3.5 w-3.5" />
-              Скачать отчёт
-            </button>
+          {/* Submit button */}
+          <div className="pt-2 space-y-2">
+            {submitError && (
+              <div className="flex items-center gap-1.5 text-[11px] text-red-600 bg-red-50 rounded-md px-2 py-1.5">
+                <AlertCircle className="h-3 w-3 shrink-0" />
+                {submitError}
+              </div>
+            )}
+
+            {submitted ? (
+              <div className="flex items-center justify-center gap-2 text-xs py-2.5 rounded-md bg-emerald-50 border border-emerald-300 text-emerald-700 font-medium">
+                <Check className="h-3.5 w-3.5" />
+                Отчёт отправлен
+              </div>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={!allRated || submitting}
+                className={`w-full flex items-center justify-center gap-2 text-xs py-2.5 rounded-md font-medium transition-all ${
+                  allRated && !submitting
+                    ? 'bg-amber-500 text-white hover:bg-amber-600 active:scale-[0.98]'
+                    : 'bg-stone-200 text-stone-400 cursor-not-allowed'
+                }`}
+              >
+                {submitting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Send className="h-3.5 w-3.5" />
+                )}
+                {submitting ? 'Отправка...' : 'Отправить отчёт'}
+              </button>
+            )}
+
+            {!allRated && !submitted && (
+              <p className="text-[10px] text-stone-400 text-center">
+                Оцените все задания, чтобы отправить отчёт
+              </p>
+            )}
           </div>
         </div>
       )}

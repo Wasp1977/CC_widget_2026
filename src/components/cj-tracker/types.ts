@@ -1,6 +1,7 @@
 export interface CJStep {
   id: string;
   label: string;
+  description: string;
 }
 
 export interface CJRating {
@@ -25,3 +26,20 @@ export const RATINGS: CJRating[] = [
   { emoji: '😊', label: 'Удобно', value: 6 },
   { emoji: '😄', label: 'Интуитивно', value: 7 },
 ];
+
+export interface ReportPayload {
+  participantName: string;
+  participantEmail: string;
+  scenarioName: string;
+  steps: CJStep[];
+  state: StepsState;
+  submittedAt: string;
+}
+
+export interface ReportFileMeta {
+  id: string;
+  filename: string;
+  participantName: string;
+  submittedAt: string;
+  size: number;
+}
