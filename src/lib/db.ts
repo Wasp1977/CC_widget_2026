@@ -6,8 +6,8 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  const tursoUrl = process.env.TURSO_URL
-  const authToken = process.env.TURSO_AUTH_TOKEN
+  const tursoUrl = process.env.TURSO_URL || process.env.cc_2026_ux_TURSO_DATABASE_URL
+  const authToken = process.env.TURSO_AUTH_TOKEN || process.env.cc_2026_ux_TURSO_AUTH_TOKEN
 
   if (tursoUrl && authToken) {
     // Turso (libSQL) connection for Vercel / production
