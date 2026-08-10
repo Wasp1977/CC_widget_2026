@@ -30,3 +30,14 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Report {
+  id               String   @id @default(cuid())
+  participantName  String   @default("Аноним")
+  participantEmail String   @default("")
+  scenarioName     String   @default("")
+  reportText       String
+  stepsJson        String   @default("[]")
+  stateJson        String   @default("{}")
+  createdAt        DateTime @default(now())
+}

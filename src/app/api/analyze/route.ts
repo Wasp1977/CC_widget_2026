@@ -1,27 +1,22 @@
 import { NextResponse } from 'next/server';
-import { readdir, readFile } from 'fs/promises';
-import path from 'path';
+import { db } from '@/lib/db';
 import ZAI from 'z-ai-web-dev-sdk';
-
-const RESULTS_DIR = path.join(process.cwd(), 'results');
 
 // POST /api/analyze — LLM analysis of all reports
 export async function POST() {
   try {
-    const files = await readdir(RESULTS_DIR);
-    const txtFiles = files.filter((f) => f.endsWith('.txt'));
+    const reports = await db.report.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
 
-    if (txtFiles.length === 0) {
+    if (reports.length === 0) {
       return NextResponse.json({ error: 'Нет сохранённых отчётов для анализа' }, { status: 400 });
     }
 
-    // Read all report contents
-    const allContents: string[] = [];
-    for (const filename of txtFiles) {
-      const content = await readFile(path.join(RESULTS_DIR, filename), 'utf-8');
-      allContents.push(`--- ${filename} ---\n${content}`);
-    }
-
+    // Build text from all reports
+    const allContents = reports.map(
+      (r) => `--- ${r.participantName} (${r.createdAt.toISOString()}) ---\n${r.reportText}`
+    );
     const allReportsText = allContents.join('\n\n');
 
     const zai = await ZAI.create();
@@ -66,7 +61,7 @@ ${allReportsText}`;
 
     const analysis = completion.choices[0]?.message?.content || 'Анализ не удалось сформировать';
 
-    return NextResponse.json({ analysis, reportsAnalyzed: txtFiles.length });
+    return NextResponse.json({ analysis, reportsAnalyzed: reports.length });
   } catch (err) {
     console.error('Analysis error:', err);
     return NextResponse.json({ error: 'Ошибка анализа: ' + (err instanceof Error ? err.message : 'неизвестная ошибка') }, { status: 500 });

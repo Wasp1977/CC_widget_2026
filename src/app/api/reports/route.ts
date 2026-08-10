@@ -1,49 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readdir, writeFile, readFile, stat } from 'fs/promises';
-import path from 'path';
-
-const RESULTS_DIR = path.join(process.cwd(), 'results');
-
-interface ReportPayload {
-  participantName: string;
-  participantEmail: string;
-  scenarioName: string;
-  steps: { id: string; label: string; description: string }[];
-  state: Record<string, { rating: { emoji: string; label: string; value: number } | null; comment: string }>;
-  reportText: string;
-  submittedAt: string;
-}
+import { db } from '@/lib/db';
 
 // GET /api/reports — list all reports
 export async function GET() {
   try {
-    const files = await readdir(RESULTS_DIR);
-    const txtFiles = files.filter((f) => f.endsWith('.txt'));
+    const reports = await db.report.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
 
-    const metas = await Promise.all(
-      txtFiles.map(async (filename) => {
-        const filePath = path.join(RESULTS_DIR, filename);
-        const fileStat = await stat(filePath);
-        const content = await readFile(filePath, 'utf-8');
-
-        // Extract participant name from first few lines
-        const nameMatch = content.match(/Участник:\s*(.+)/);
-        const dateMatch = content.match(/Дата:\s*(.+)/);
-        const name = nameMatch ? nameMatch[1].trim() : 'Аноним';
-        const submittedAt = dateMatch ? dateMatch[1].trim() : fileStat.birthtime.toISOString();
-
-        return {
-          id: filename.replace('.txt', ''),
-          filename,
-          participantName: name,
-          submittedAt,
-          size: fileStat.size,
-        };
+    const metas = reports.map((r) => ({
+      id: r.id,
+      filename: `report-${r.id}.txt`,
+      participantName: r.participantName || 'Аноним',
+      submittedAt: r.createdAt.toLocaleString('ru-RU', {
+        timeZone: 'Europe/Moscow',
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
       }),
-    );
-
-    // Sort by creation time descending (newest first)
-    metas.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
+      size: new Blob([r.reportText]).size,
+    }));
 
     return NextResponse.json(metas);
   } catch {
@@ -54,22 +29,28 @@ export async function GET() {
 // POST /api/reports — save a new report
 export async function POST(req: NextRequest) {
   try {
-    const payload: ReportPayload = await req.json();
+    const payload = await req.json();
 
     if (!payload.reportText || !payload.steps?.length) {
       return NextResponse.json({ error: 'Некорректные данные' }, { status: 400 });
     }
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const nameSlug = payload.participantName?.trim()
-      ? `-${payload.participantName.trim().replace(/\s+/g, '_').toLowerCase()}`
-      : '';
-    const filename = `report-${timestamp}${nameSlug}.txt`;
+    const report = await db.report.create({
+      data: {
+        participantName: payload.participantName?.trim() || 'Аноним',
+        participantEmail: payload.participantEmail?.trim() || '',
+        scenarioName: payload.scenarioName || '',
+        reportText: payload.reportText,
+        stepsJson: JSON.stringify(payload.steps),
+        stateJson: JSON.stringify(payload.state),
+      },
+    });
 
-    const filePath = path.join(RESULTS_DIR, filename);
-    await writeFile(filePath, payload.reportText, 'utf-8');
-
-    return NextResponse.json({ success: true, filename, id: filename.replace('.txt', '') });
+    return NextResponse.json({
+      success: true,
+      id: report.id,
+      filename: `report-${report.id}.txt`,
+    });
   } catch (err) {
     console.error('Error saving report:', err);
     return NextResponse.json({ error: 'Ошибка сохранения отчёта' }, { status: 500 });

@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile, stat, unlink } from 'fs/promises';
-import path from 'path';
-
-const RESULTS_DIR = path.join(process.cwd(), 'results');
+import { db } from '@/lib/db';
 
 // GET /api/reports/[id] — get report content
 export async function GET(
@@ -11,20 +8,20 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const filename = id.endsWith('.txt') ? id : `${id}.txt`;
-    const filePath = path.join(RESULTS_DIR, filename);
+    const report = await db.report.findUnique({ where: { id } });
 
-    const fileContent = await readFile(filePath, 'utf-8');
-    const fileStat = await stat(filePath);
+    if (!report) {
+      return NextResponse.json({ error: 'Отчёт не найден' }, { status: 404 });
+    }
 
     return NextResponse.json({
-      id,
-      filename,
-      content: fileContent,
-      size: fileStat.size,
+      id: report.id,
+      filename: `report-${report.id}.txt`,
+      content: report.reportText,
+      size: new Blob([report.reportText]).size,
     });
   } catch {
-    return NextResponse.json({ error: 'Файл не найден' }, { status: 404 });
+    return NextResponse.json({ error: 'Ошибка загрузки' }, { status: 500 });
   }
 }
 
@@ -35,13 +32,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const filename = id.endsWith('.txt') ? id : `${id}.txt`;
-    const filePath = path.join(RESULTS_DIR, filename);
-
-    await unlink(filePath);
-
+    await db.report.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch {
-    return NextResponse.json({ error: 'Файл не найден' }, { status: 404 });
+    return NextResponse.json({ error: 'Отчёт не найден' }, { status: 404 });
   }
 }
