@@ -13,6 +13,7 @@ import {
   Mail,
   AlertCircle,
   Lock,
+  ArrowRight,
 } from 'lucide-react';
 
 // ─── Props ───
@@ -107,17 +108,13 @@ export default function CJTracker({
     setState((prev) => ({ ...prev, [stepId]: { ...prev[stepId], comment } }));
   }, []);
 
-  // Auto-advance after rating current step
-  useEffect(() => {
+  // Manual advance via "Done" button
+  const goToNext = useCallback(() => {
     if (!currentStep) return;
-    const rated = state[currentStep.id]?.rating !== null;
-    if (rated && !isLastStep && !submitted) {
-      const timer = setTimeout(() => {
-        setActiveStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
-      }, 600);
-      return () => clearTimeout(timer);
-    }
-  }, [state, currentStep, isLastStep, steps.length, submitted]);
+    if (state[currentStep.id]?.rating === null) return;
+    if (isLastStep) return;
+    setActiveStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
+  }, [currentStep, state, isLastStep]);
 
   // Click on completed step — allow reviewing (set active index back)
   const handleStepClick = useCallback((idx: number) => {
@@ -164,8 +161,8 @@ export default function CJTracker({
 
   // ── Step classification ──
   const getStepStatus = (idx: number): 'completed' | 'active' | 'locked' => {
-    if (state[steps[idx].id]?.rating !== null) return 'completed';
     if (idx === activeStepIndex) return 'active';
+    if (state[steps[idx].id]?.rating !== null) return 'completed';
     return 'locked';
   };
 
@@ -191,6 +188,11 @@ export default function CJTracker({
             {panelOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
           </button>
         </div>
+      </div>
+      <div className="px-3 pb-2 border-b border-stone-200 bg-stone-100/50">
+        <p className="text-[11px] text-stone-500 leading-snug">
+          Выполните задания по порядку: оцените эмоцию после каждого шага и нажмите «Готово».
+        </p>
       </div>
 
       {/* ── Disclaimer ── */}
@@ -336,10 +338,28 @@ export default function CJTracker({
                     <textarea
                       value={data?.comment || ''}
                       onChange={(e) => setComment(step.id, e.target.value)}
-                      placeholder="Что было неочевидно? Что вызвало затруднение?"
+                      placeholder="Что было неочевидно? А так же, делитесь вашими идеями!"
                       className="w-full text-xs p-2 rounded-md border border-stone-200 bg-stone-50 text-stone-700 placeholder:text-stone-400 resize-none focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400"
                       rows={3}
                     />
+
+                    {/* Done button */}
+                    <button
+                      onClick={goToNext}
+                      disabled={state[step.id]?.rating === null || isLastStep}
+                      className={`w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-md font-medium transition-all ${
+                        state[step.id]?.rating !== null && !isLastStep
+                          ? 'bg-stone-700 text-white hover:bg-stone-800 active:scale-[0.98]'
+                          : 'bg-stone-200 text-stone-400 cursor-not-allowed'
+                      }`}
+                    >
+                      {isLastStep ? (
+                        <Check className="h-3.5 w-3.5" />
+                      ) : (
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      )}
+                      {isLastStep ? 'Последнее задание' : 'Готово'}
+                    </button>
                   </div>
                 )}
 
