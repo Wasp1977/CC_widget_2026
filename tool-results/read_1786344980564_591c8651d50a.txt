@@ -1,0 +1,762 @@
+     1→▲ Next.js 16.1.3 (Turbopack)
+     2→- Local:         http://localhost:3000
+     3→- Network:       http://21.0.16.230:3000
+     4→- Environments: .env
+     5→
+     6→✓ Starting...
+     7→Attention: Next.js now collects completely anonymous telemetry regarding usage.
+     8→This information is used to shape Next.js' roadmap and prioritize features.
+     9→You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+    10→https://nextjs.org/telemetry
+    11→
+    12→
+    13→  We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+    14→  The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+    15→
+    16→        - include was updated to add '.next/dev/types/**/*.ts'
+    17→
+    18→  The following mandatory changes were made to your tsconfig.json:
+    19→
+    20→        - jsx was set to react-jsx (next.js uses the React automatic runtime)
+    21→
+    22→✓ Ready in 707ms
+    23→○ Compiling / ...
+    24→ GET / 200 in 4.2s (compile: 4.0s, render: 171ms)
+    25→ GET / 200 in 2.5s (compile: 2.4s, render: 58ms)
+    26→ GET / 200 in 41ms (compile: 2ms, render: 39ms)
+    27→ GET / 200 in 29ms (compile: 3ms, render: 26ms)
+    28→ GET / 200 in 28ms (compile: 3ms, render: 25ms)
+    29→✓ Compiled in 183ms
+    30→✓ Compiled in 221ms
+    31→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+    32→Module not found: Can't resolve 'socket.io-client'
+    33→[0m [90m 2 |[39m
+    34→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+    35→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+    36→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+    37→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+    38→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+    39→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+    40→
+    41→
+    42→
+    43→Import traces:
+    44→  Client Component Browser:
+    45→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+    46→    ./src/app/page.tsx [Client Component Browser]
+    47→    ./src/app/page.tsx [Server Component]
+    48→
+    49→  Client Component SSR:
+    50→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+    51→    ./src/app/page.tsx [Client Component SSR]
+    52→    ./src/app/page.tsx [Server Component]
+    53→
+    54→https://nextjs.org/docs/messages/module-not-found
+    55→
+    56→
+    57→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+    58→Module not found: Can't resolve 'socket.io-client'
+    59→[0m [90m 2 |[39m
+    60→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+    61→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+    62→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+    63→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+    64→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+    65→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+    66→
+    67→
+    68→
+    69→Import traces:
+    70→  Client Component Browser:
+    71→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+    72→    ./src/app/page.tsx [Client Component Browser]
+    73→    ./src/app/page.tsx [Server Component]
+    74→
+    75→  Client Component SSR:
+    76→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+    77→    ./src/app/page.tsx [Client Component SSR]
+    78→    ./src/app/page.tsx [Server Component]
+    79→
+    80→https://nextjs.org/docs/messages/module-not-found
+    81→
+    82→
+    83→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+    84→Module not found: Can't resolve 'socket.io-client'
+    85→[0m [90m 2 |[39m
+    86→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+    87→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+    88→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+    89→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+    90→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+    91→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+    92→
+    93→
+    94→
+    95→Import traces:
+    96→  Client Component Browser:
+    97→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+    98→    ./src/app/page.tsx [Client Component Browser]
+    99→    ./src/app/page.tsx [Server Component]
+   100→
+   101→  Client Component SSR:
+   102→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   103→    ./src/app/page.tsx [Client Component SSR]
+   104→    ./src/app/page.tsx [Server Component]
+   105→
+   106→https://nextjs.org/docs/messages/module-not-found
+   107→
+   108→
+   109→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   110→Module not found: Can't resolve 'socket.io-client'
+   111→[0m [90m 2 |[39m
+   112→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   113→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   114→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   115→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   116→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   117→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   118→
+   119→
+   120→
+   121→Import traces:
+   122→  Client Component Browser:
+   123→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   124→    ./src/app/page.tsx [Client Component Browser]
+   125→    ./src/app/page.tsx [Server Component]
+   126→
+   127→  Client Component SSR:
+   128→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   129→    ./src/app/page.tsx [Client Component SSR]
+   130→    ./src/app/page.tsx [Server Component]
+   131→
+   132→https://nextjs.org/docs/messages/module-not-found
+   133→
+   134→
+   135→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   136→Module not found: Can't resolve 'socket.io-client'
+   137→[0m [90m 2 |[39m
+   138→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   139→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   140→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   141→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   142→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   143→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   144→
+   145→
+   146→
+   147→Import traces:
+   148→  Client Component Browser:
+   149→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   150→    ./src/app/page.tsx [Client Component Browser]
+   151→    ./src/app/page.tsx [Server Component]
+   152→
+   153→  Client Component SSR:
+   154→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   155→    ./src/app/page.tsx [Client Component SSR]
+   156→    ./src/app/page.tsx [Server Component]
+   157→
+   158→https://nextjs.org/docs/messages/module-not-found
+   159→
+   160→
+   161→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   162→Module not found: Can't resolve 'socket.io-client'
+   163→[0m [90m 2 |[39m
+   164→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   165→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   166→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   167→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   168→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   169→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   170→
+   171→
+   172→
+   173→Import traces:
+   174→  Client Component Browser:
+   175→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   176→    ./src/app/page.tsx [Client Component Browser]
+   177→    ./src/app/page.tsx [Server Component]
+   178→
+   179→  Client Component SSR:
+   180→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   181→    ./src/app/page.tsx [Client Component SSR]
+   182→    ./src/app/page.tsx [Server Component]
+   183→
+   184→https://nextjs.org/docs/messages/module-not-found
+   185→
+   186→
+   187→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   188→Module not found: Can't resolve 'socket.io-client'
+   189→[0m [90m 2 |[39m
+   190→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   191→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   192→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   193→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   194→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   195→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   196→
+   197→
+   198→
+   199→Import traces:
+   200→  Client Component Browser:
+   201→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   202→    ./src/app/page.tsx [Client Component Browser]
+   203→    ./src/app/page.tsx [Server Component]
+   204→
+   205→  Client Component SSR:
+   206→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   207→    ./src/app/page.tsx [Client Component SSR]
+   208→    ./src/app/page.tsx [Server Component]
+   209→
+   210→https://nextjs.org/docs/messages/module-not-found
+   211→
+   212→
+   213→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   214→Module not found: Can't resolve 'socket.io-client'
+   215→[0m [90m 2 |[39m
+   216→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   217→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   218→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   219→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   220→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   221→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   222→
+   223→
+   224→
+   225→Import traces:
+   226→  Client Component Browser:
+   227→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   228→    ./src/app/page.tsx [Client Component Browser]
+   229→    ./src/app/page.tsx [Server Component]
+   230→
+   231→  Client Component SSR:
+   232→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   233→    ./src/app/page.tsx [Client Component SSR]
+   234→    ./src/app/page.tsx [Server Component]
+   235→
+   236→https://nextjs.org/docs/messages/module-not-found
+   237→
+   238→
+   239→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   240→Module not found: Can't resolve 'socket.io-client'
+   241→[0m [90m 2 |[39m
+   242→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   243→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   244→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   245→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   246→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   247→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   248→
+   249→
+   250→
+   251→Import traces:
+   252→  Client Component Browser:
+   253→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   254→    ./src/app/page.tsx [Client Component Browser]
+   255→    ./src/app/page.tsx [Server Component]
+   256→
+   257→  Client Component SSR:
+   258→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   259→    ./src/app/page.tsx [Client Component SSR]
+   260→    ./src/app/page.tsx [Server Component]
+   261→
+   262→https://nextjs.org/docs/messages/module-not-found
+   263→
+   264→
+   265→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   266→Module not found: Can't resolve 'socket.io-client'
+   267→[0m [90m 2 |[39m
+   268→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   269→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   270→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   271→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   272→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   273→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   274→
+   275→
+   276→
+   277→Import traces:
+   278→  Client Component Browser:
+   279→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   280→    ./src/app/page.tsx [Client Component Browser]
+   281→    ./src/app/page.tsx [Server Component]
+   282→
+   283→  Client Component SSR:
+   284→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   285→    ./src/app/page.tsx [Client Component SSR]
+   286→    ./src/app/page.tsx [Server Component]
+   287→
+   288→https://nextjs.org/docs/messages/module-not-found
+   289→
+   290→
+   291→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   292→Module not found: Can't resolve 'socket.io-client'
+   293→[0m [90m 2 |[39m
+   294→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   295→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   296→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   297→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   298→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   299→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   300→
+   301→
+   302→
+   303→Import traces:
+   304→  Client Component Browser:
+   305→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   306→    ./src/app/page.tsx [Client Component Browser]
+   307→    ./src/app/page.tsx [Server Component]
+   308→
+   309→  Client Component SSR:
+   310→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   311→    ./src/app/page.tsx [Client Component SSR]
+   312→    ./src/app/page.tsx [Server Component]
+   313→
+   314→https://nextjs.org/docs/messages/module-not-found
+   315→
+   316→
+   317→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   318→Module not found: Can't resolve 'socket.io-client'
+   319→[0m [90m 2 |[39m
+   320→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   321→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   322→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   323→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   324→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   325→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   326→
+   327→
+   328→
+   329→Import traces:
+   330→  Client Component Browser:
+   331→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   332→    ./src/app/page.tsx [Client Component Browser]
+   333→    ./src/app/page.tsx [Server Component]
+   334→
+   335→  Client Component SSR:
+   336→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   337→    ./src/app/page.tsx [Client Component SSR]
+   338→    ./src/app/page.tsx [Server Component]
+   339→
+   340→https://nextjs.org/docs/messages/module-not-found
+   341→
+   342→
+   343→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   344→Module not found: Can't resolve 'socket.io-client'
+   345→[0m [90m 2 |[39m
+   346→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   347→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   348→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   349→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   350→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   351→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   352→
+   353→
+   354→
+   355→Import traces:
+   356→  Client Component Browser:
+   357→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   358→    ./src/app/page.tsx [Client Component Browser]
+   359→    ./src/app/page.tsx [Server Component]
+   360→
+   361→  Client Component SSR:
+   362→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   363→    ./src/app/page.tsx [Client Component SSR]
+   364→    ./src/app/page.tsx [Server Component]
+   365→
+   366→https://nextjs.org/docs/messages/module-not-found
+   367→
+   368→
+   369→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   370→Module not found: Can't resolve 'socket.io-client'
+   371→[0m [90m 2 |[39m
+   372→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   373→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   374→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   375→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   376→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   377→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   378→
+   379→
+   380→
+   381→Import traces:
+   382→  Client Component Browser:
+   383→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   384→    ./src/app/page.tsx [Client Component Browser]
+   385→    ./src/app/page.tsx [Server Component]
+   386→
+   387→  Client Component SSR:
+   388→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   389→    ./src/app/page.tsx [Client Component SSR]
+   390→    ./src/app/page.tsx [Server Component]
+   391→
+   392→https://nextjs.org/docs/messages/module-not-found
+   393→
+   394→
+   395→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   396→Module not found: Can't resolve 'socket.io-client'
+   397→[0m [90m 2 |[39m
+   398→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   399→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   400→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   401→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   402→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   403→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   404→
+   405→
+   406→
+   407→Import traces:
+   408→  Client Component Browser:
+   409→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   410→    ./src/app/page.tsx [Client Component Browser]
+   411→    ./src/app/page.tsx [Server Component]
+   412→
+   413→  Client Component SSR:
+   414→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   415→    ./src/app/page.tsx [Client Component SSR]
+   416→    ./src/app/page.tsx [Server Component]
+   417→
+   418→https://nextjs.org/docs/messages/module-not-found
+   419→
+   420→
+   421→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   422→Module not found: Can't resolve 'socket.io-client'
+   423→[0m [90m 2 |[39m
+   424→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   425→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   426→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   427→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   428→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   429→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   430→
+   431→
+   432→
+   433→Import traces:
+   434→  Client Component Browser:
+   435→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   436→    ./src/app/page.tsx [Client Component Browser]
+   437→    ./src/app/page.tsx [Server Component]
+   438→
+   439→  Client Component SSR:
+   440→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   441→    ./src/app/page.tsx [Client Component SSR]
+   442→    ./src/app/page.tsx [Server Component]
+   443→
+   444→https://nextjs.org/docs/messages/module-not-found
+   445→
+   446→
+   447→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   448→Module not found: Can't resolve 'socket.io-client'
+   449→[0m [90m 2 |[39m
+   450→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   451→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   452→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   453→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   454→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   455→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   456→
+   457→
+   458→
+   459→Import traces:
+   460→  Client Component Browser:
+   461→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   462→    ./src/app/page.tsx [Client Component Browser]
+   463→    ./src/app/page.tsx [Server Component]
+   464→
+   465→  Client Component SSR:
+   466→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   467→    ./src/app/page.tsx [Client Component SSR]
+   468→    ./src/app/page.tsx [Server Component]
+   469→
+   470→https://nextjs.org/docs/messages/module-not-found
+   471→
+   472→
+   473→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   474→Module not found: Can't resolve 'socket.io-client'
+   475→[0m [90m 2 |[39m
+   476→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   477→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   478→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   479→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   480→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   481→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   482→
+   483→
+   484→
+   485→Import traces:
+   486→  Client Component Browser:
+   487→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   488→    ./src/app/page.tsx [Client Component Browser]
+   489→    ./src/app/page.tsx [Server Component]
+   490→
+   491→  Client Component SSR:
+   492→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   493→    ./src/app/page.tsx [Client Component SSR]
+   494→    ./src/app/page.tsx [Server Component]
+   495→
+   496→https://nextjs.org/docs/messages/module-not-found
+   497→
+   498→
+   499→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   500→Module not found: Can't resolve 'socket.io-client'
+   501→[0m [90m 2 |[39m
+   502→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   503→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   504→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   505→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   506→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   507→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   508→
+   509→
+   510→
+   511→Import traces:
+   512→  Client Component Browser:
+   513→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   514→    ./src/app/page.tsx [Client Component Browser]
+   515→    ./src/app/page.tsx [Server Component]
+   516→
+   517→  Client Component SSR:
+   518→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   519→    ./src/app/page.tsx [Client Component SSR]
+   520→    ./src/app/page.tsx [Server Component]
+   521→
+   522→https://nextjs.org/docs/messages/module-not-found
+   523→
+   524→
+   525→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   526→Module not found: Can't resolve 'socket.io-client'
+   527→[0m [90m 2 |[39m
+   528→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   529→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   530→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   531→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   532→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   533→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   534→
+   535→
+   536→
+   537→Import traces:
+   538→  Client Component Browser:
+   539→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   540→    ./src/app/page.tsx [Client Component Browser]
+   541→    ./src/app/page.tsx [Server Component]
+   542→
+   543→  Client Component SSR:
+   544→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   545→    ./src/app/page.tsx [Client Component SSR]
+   546→    ./src/app/page.tsx [Server Component]
+   547→
+   548→https://nextjs.org/docs/messages/module-not-found
+   549→
+   550→
+   551→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   552→Module not found: Can't resolve 'socket.io-client'
+   553→[0m [90m 2 |[39m
+   554→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   555→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   556→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   557→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   558→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   559→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   560→
+   561→
+   562→
+   563→Import traces:
+   564→  Client Component Browser:
+   565→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   566→    ./src/app/page.tsx [Client Component Browser]
+   567→    ./src/app/page.tsx [Server Component]
+   568→
+   569→  Client Component SSR:
+   570→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   571→    ./src/app/page.tsx [Client Component SSR]
+   572→    ./src/app/page.tsx [Server Component]
+   573→
+   574→https://nextjs.org/docs/messages/module-not-found
+   575→
+   576→
+   577→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   578→Module not found: Can't resolve 'socket.io-client'
+   579→[0m [90m 2 |[39m
+   580→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   581→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   582→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   583→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   584→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   585→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   586→
+   587→
+   588→
+   589→Import traces:
+   590→  Client Component Browser:
+   591→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   592→    ./src/app/page.tsx [Client Component Browser]
+   593→    ./src/app/page.tsx [Server Component]
+   594→
+   595→  Client Component SSR:
+   596→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   597→    ./src/app/page.tsx [Client Component SSR]
+   598→    ./src/app/page.tsx [Server Component]
+   599→
+   600→https://nextjs.org/docs/messages/module-not-found
+   601→
+   602→
+   603→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   604→Module not found: Can't resolve 'socket.io-client'
+   605→[0m [90m 2 |[39m
+   606→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   607→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   608→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   609→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   610→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   611→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   612→
+   613→
+   614→
+   615→Import traces:
+   616→  Client Component Browser:
+   617→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   618→    ./src/app/page.tsx [Client Component Browser]
+   619→    ./src/app/page.tsx [Server Component]
+   620→
+   621→  Client Component SSR:
+   622→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   623→    ./src/app/page.tsx [Client Component SSR]
+   624→    ./src/app/page.tsx [Server Component]
+   625→
+   626→https://nextjs.org/docs/messages/module-not-found
+   627→
+   628→
+   629→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   630→Module not found: Can't resolve 'socket.io-client'
+   631→[0m [90m 2 |[39m
+   632→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   633→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   634→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   635→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   636→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   637→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   638→
+   639→
+   640→
+   641→Import traces:
+   642→  Client Component Browser:
+   643→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   644→    ./src/app/page.tsx [Client Component Browser]
+   645→    ./src/app/page.tsx [Server Component]
+   646→
+   647→  Client Component SSR:
+   648→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   649→    ./src/app/page.tsx [Client Component SSR]
+   650→    ./src/app/page.tsx [Server Component]
+   651→
+   652→https://nextjs.org/docs/messages/module-not-found
+   653→
+   654→
+   655→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   656→Module not found: Can't resolve 'socket.io-client'
+   657→[0m [90m 2 |[39m
+   658→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   659→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   660→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   661→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   662→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   663→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   664→
+   665→
+   666→
+   667→Import traces:
+   668→  Client Component Browser:
+   669→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   670→    ./src/app/page.tsx [Client Component Browser]
+   671→    ./src/app/page.tsx [Server Component]
+   672→
+   673→  Client Component SSR:
+   674→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   675→    ./src/app/page.tsx [Client Component SSR]
+   676→    ./src/app/page.tsx [Server Component]
+   677→
+   678→https://nextjs.org/docs/messages/module-not-found
+   679→
+   680→
+   681→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   682→Module not found: Can't resolve 'socket.io-client'
+   683→[0m [90m 2 |[39m
+   684→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   685→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   686→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   687→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   688→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   689→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   690→
+   691→
+   692→
+   693→Import traces:
+   694→  Client Component Browser:
+   695→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   696→    ./src/app/page.tsx [Client Component Browser]
+   697→    ./src/app/page.tsx [Server Component]
+   698→
+   699→  Client Component SSR:
+   700→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   701→    ./src/app/page.tsx [Client Component SSR]
+   702→    ./src/app/page.tsx [Server Component]
+   703→
+   704→https://nextjs.org/docs/messages/module-not-found
+   705→
+   706→
+   707→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   708→Module not found: Can't resolve 'socket.io-client'
+   709→[0m [90m 2 |[39m
+   710→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   711→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   712→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   713→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   714→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   715→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   716→
+   717→
+   718→
+   719→Import traces:
+   720→  Client Component Browser:
+   721→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   722→    ./src/app/page.tsx [Client Component Browser]
+   723→    ./src/app/page.tsx [Server Component]
+   724→
+   725→  Client Component SSR:
+   726→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   727→    ./src/app/page.tsx [Client Component SSR]
+   728→    ./src/app/page.tsx [Server Component]
+   729→
+   730→https://nextjs.org/docs/messages/module-not-found
+   731→
+   732→
+   733→⨯ ./src/components/cc-widget/wallboard.tsx:4:1
+   734→Module not found: Can't resolve 'socket.io-client'
+   735→[0m [90m 2 |[39m
+   736→ [90m 3 |[39m [36mimport[39m { useEffect[33m,[39m useState[33m,[39m useCallback[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+   737→[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { io[33m,[39m [33mSocket[39m } [36mfrom[39m [32m'socket.io-client'[39m[33m;[39m
+   738→ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   739→ [90m 5 |[39m [36mimport[39m { [33mCard[39m[33m,[39m [33mCardContent[39m[33m,[39m [33mCardHeader[39m[33m,[39m [33mCardTitle[39m } [36mfrom[39m [32m'@/components/ui/card'[39m[33m;[39m
+   740→ [90m 6 |[39m [36mimport[39m { [33mBadge[39m } [36mfrom[39m [32m'@/components/ui/badge'[39m[33m;[39m
+   741→ [90m 7 |[39m [36mimport[39m { [33mTooltip[39m[33m,[39m [33mTooltipContent[39m[33m,[39m [33mTooltipProvider[39m[33m,[39m [33mTooltipTrigger[39m } [36mfrom[39m [32m'@/components/ui/tooltip'[39m[33m;[39m[0m
+   742→
+   743→
+   744→
+   745→Import traces:
+   746→  Client Component Browser:
+   747→    ./src/components/cc-widget/wallboard.tsx [Client Component Browser]
+   748→    ./src/app/page.tsx [Client Component Browser]
+   749→    ./src/app/page.tsx [Server Component]
+   750→
+   751→  Client Component SSR:
+   752→    ./src/components/cc-widget/wallboard.tsx [Client Component SSR]
+   753→    ./src/app/page.tsx [Client Component SSR]
+   754→    ./src/app/page.tsx [Server Component]
+   755→
+   756→https://nextjs.org/docs/messages/module-not-found
+   757→
+   758→
+   759→✓ Compiled in 565ms
+   760→✓ Compiled in 865ms
+   761→ GET / 200 in 52ms (compile: 35ms, render: 17ms)
+   762→
