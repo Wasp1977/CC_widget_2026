@@ -165,7 +165,7 @@ function useRealtimeData() {
         if (newStatus !== a.status) return { ...a, status: newStatus, statusSince: new Date().toISOString() };
         return a;
       }));
-    }, 2000);
+    }, 30000);
 
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
   }, []);
