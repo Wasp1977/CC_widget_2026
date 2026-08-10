@@ -31,7 +31,7 @@ interface Agent {
   login: string;
   extension: string;
   queue: string;
-  status: 'online' | 'break' | 'offline' | 'call';
+  status: 'online' | 'break' | 'offline';
   callsToday: number;
   talkTime: number;
   waitTime: number;
@@ -52,18 +52,18 @@ const INITIAL_QUEUES: Queue[] = [
 ];
 
 const INITIAL_AGENTS: Agent[] = [
-  { id: 'a1', name: 'Иванова Мария', login: 'ivanova', extension: '1001', queue: 'Продажи', status: 'call', callsToday: 47, talkTime: 11200, waitTime: 840, avgCallDuration: 238, statusSince: '2026-08-10T06:30:00Z' },
+  { id: 'a1', name: 'Иванова Мария', login: 'ivanova', extension: '1001', queue: 'Продажи', status: 'online', callsToday: 47, talkTime: 11200, waitTime: 840, avgCallDuration: 238, statusSince: '2026-08-10T06:30:00Z' },
   { id: 'a2', name: 'Петров Алексей', login: 'petrov', extension: '1002', queue: 'Продажи', status: 'online', callsToday: 38, talkTime: 8500, waitTime: 620, avgCallDuration: 224, statusSince: '2026-08-10T06:45:00Z' },
-  { id: 'a3', name: 'Сидорова Елена', login: 'sidorova', extension: '1003', queue: 'Поддержка', status: 'call', callsToday: 52, talkTime: 14500, waitTime: 1200, avgCallDuration: 279, statusSince: '2026-08-10T06:15:00Z' },
+  { id: 'a3', name: 'Сидорова Елена', login: 'sidorova', extension: '1003', queue: 'Поддержка', status: 'online', callsToday: 52, talkTime: 14500, waitTime: 1200, avgCallDuration: 279, statusSince: '2026-08-10T06:15:00Z' },
   { id: 'a4', name: 'Козлов Дмитрий', login: 'kozlov', extension: '1004', queue: 'Поддержка', status: 'break', callsToday: 41, talkTime: 10200, waitTime: 900, avgCallDuration: 249, statusSince: '2026-08-10T06:50:00Z' },
   { id: 'a5', name: 'Новикова Анна', login: 'novikova', extension: '1005', queue: 'Тех. отдел', status: 'online', callsToday: 29, talkTime: 9800, waitTime: 450, avgCallDuration: 338, statusSince: '2026-08-10T07:00:00Z' },
-  { id: 'a6', name: 'Морозов Игорь', login: 'morozov', extension: '1006', queue: 'Тех. отдел', status: 'call', callsToday: 33, talkTime: 12000, waitTime: 500, avgCallDuration: 364, statusSince: '2026-08-10T06:20:00Z' },
+  { id: 'a6', name: 'Морозов Игорь', login: 'morozov', extension: '1006', queue: 'Тех. отдел', status: 'online', callsToday: 33, talkTime: 12000, waitTime: 500, avgCallDuration: 364, statusSince: '2026-08-10T06:20:00Z' },
   { id: 'a7', name: 'Волкова Ольга', login: 'volkova', extension: '1007', queue: 'Биллинг', status: 'online', callsToday: 44, talkTime: 7600, waitTime: 380, avgCallDuration: 173, statusSince: '2026-08-10T06:40:00Z' },
   { id: 'a8', name: 'Соколов Андрей', login: 'sokolov', extension: '1008', queue: 'Биллинг', status: 'offline', callsToday: 0, talkTime: 0, waitTime: 0, avgCallDuration: 0, statusSince: '2026-08-10T00:00:00Z' },
   { id: 'a9', name: 'Кузнецова Татьяна', login: 'kuznetsova', extension: '1009', queue: 'VIP-клиенты', status: 'online', callsToday: 18, talkTime: 5200, waitTime: 200, avgCallDuration: 289, statusSince: '2026-08-10T06:35:00Z' },
-  { id: 'a10', name: 'Попов Максим', login: 'popov', extension: '1010', queue: 'VIP-клиенты', status: 'call', callsToday: 22, talkTime: 6100, waitTime: 280, avgCallDuration: 277, statusSince: '2026-08-10T06:25:00Z' },
-  { id: 'a11', name: 'Лебедева Екатерина', login: 'lebedeva', extension: '1011', queue: 'Мультискилл', status: 'call', callsToday: 55, talkTime: 16000, waitTime: 1500, avgCallDuration: 291, statusSince: '2026-08-10T06:10:00Z' },
-  { id: 'a12', name: 'Федоров Сергей', login: 'fedorov', extension: '1012', queue: 'Мультискилл', status: 'call', callsToday: 48, talkTime: 13800, waitTime: 1100, avgCallDuration: 288, statusSince: '2026-08-10T06:12:00Z' },
+  { id: 'a10', name: 'Попов Максим', login: 'popov', extension: '1010', queue: 'VIP-клиенты', status: 'online', callsToday: 22, talkTime: 6100, waitTime: 280, avgCallDuration: 277, statusSince: '2026-08-10T06:25:00Z' },
+  { id: 'a11', name: 'Лебедева Екатерина', login: 'lebedeva', extension: '1011', queue: 'Мультискилл', status: 'online', callsToday: 55, talkTime: 16000, waitTime: 1500, avgCallDuration: 291, statusSince: '2026-08-10T06:10:00Z' },
+  { id: 'a12', name: 'Федоров Сергей', login: 'fedorov', extension: '1012', queue: 'Мультискилл', status: 'online', callsToday: 48, talkTime: 13800, waitTime: 1100, avgCallDuration: 288, statusSince: '2026-08-10T06:12:00Z' },
 ];
 
 // ---- Helpers ----
@@ -110,18 +110,18 @@ function fmt(s: number): string {
 
 function getStatusDot(status: Agent['status']): string {
   const map: Record<Agent['status'], string> = {
-    online: 'bg-emerald-500', call: 'bg-blue-500', break: 'bg-amber-500', offline: 'bg-zinc-400',
+    online: 'bg-emerald-500', break: 'bg-amber-500', offline: 'bg-zinc-400',
   };
   return map[status];
 }
 
 function getStatusLabel(status: Agent['status']): string {
-  const map: Record<Agent['status'], string> = { online: 'На линии', call: 'Разговор', break: 'Перерыв', offline: 'Отключён' };
+  const map: Record<Agent['status'], string> = { online: 'На линии', break: 'Перерыв', offline: 'Отключён' };
   return map[status];
 }
 
 function getStatusBadge(status: Agent['status']): 'default' | 'secondary' | 'destructive' | 'outline' {
-  const map: Record<Agent['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = { online: 'default', call: 'secondary', break: 'outline', offline: 'destructive' };
+  const map: Record<Agent['status'], 'default' | 'outline' | 'destructive'> = { online: 'default', break: 'outline', offline: 'destructive' };
   return map[status];
 }
 
@@ -155,13 +155,8 @@ function useRealtimeData() {
         if (a.status === 'offline') return a;
         let newStatus = a.status;
         const r = Math.random();
-        if (a.status === 'call' && r < 0.04) {
-          newStatus = 'online';
-          return { ...a, status: newStatus, callsToday: a.callsToday + 1, talkTime: a.talkTime + Math.round(Math.random() * 300 + 60) };
-        }
-        if (a.status === 'online' && r < 0.03) newStatus = 'call';
-        else if (a.status === 'online' && r < 0.05) newStatus = 'break';
-        else if (a.status === 'break' && r < 0.06) newStatus = 'online';
+        if (a.status === 'online' && r < 0.05) newStatus = 'break';
+        else if (a.status === 'break' && r < 0.08) newStatus = 'online';
         if (newStatus !== a.status) return { ...a, status: newStatus, statusSince: new Date().toISOString() };
         return a;
       }));
@@ -324,7 +319,7 @@ function WallboardMatrix({ queues }: { queues: Queue[] }) {
 
 // ---- Agents Panel ----
 function AgentsPanel({ agents, onChangeStatus }: { agents: Agent[]; onChangeStatus: (id: string, status: Agent['status']) => void }) {
-  const statusOrder: Agent['status'][] = ['call', 'online', 'break', 'offline'];
+  const statusOrder: Agent['status'][] = ['online', 'break', 'offline'];
   const sorted = [...agents].sort((a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status));
   const totalCalls = agents.reduce((s, a) => s + a.callsToday, 0);
 
@@ -334,7 +329,7 @@ function AgentsPanel({ agents, onChangeStatus }: { agents: Agent[]; onChangeStat
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Агенты
+            Сотрудники
           </CardTitle>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>Всего: {agents.length}</span>
@@ -368,7 +363,6 @@ function AgentsPanel({ agents, onChangeStatus }: { agents: Agent[]; onChangeStat
                   onChange={(e) => onChangeStatus(agent.id, e.target.value as Agent['status'])}
                 >
                   <option value="online">На линии</option>
-                  <option value="call">Разговор</option>
                   <option value="break">Перерыв</option>
                   <option value="offline">Отключён</option>
                 </select>
@@ -404,7 +398,7 @@ function EmployeeDashboard({ agents, onChangeStatus }: { agents: Agent[]; onChan
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className={`h-3 w-3 rounded-full ${getStatusDot(me.status)} ${me.status === 'call' ? 'animate-pulse' : ''}`} />
+            <div className={`h-3 w-3 rounded-full ${getStatusDot(me.status)}`} />
             <span className="text-sm font-medium">{getStatusLabel(me.status)}</span>
             {statusTime > 0 && (
               <span className="text-xs text-muted-foreground ml-1">({fmt(statusTime)})</span>
