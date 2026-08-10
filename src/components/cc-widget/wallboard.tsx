@@ -491,9 +491,9 @@ export default function ContactCenterWidget() {
   const [role, setRole] = useState<'supervisor' | 'agent'>('supervisor');
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
+    <div className="h-full bg-slate-50 dark:bg-zinc-950 overflow-auto">
       <header className="bg-white dark:bg-zinc-900 border-b border-border sticky top-0 z-20">
-        <div className="max-w-[1600px] mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-slate-900 dark:bg-slate-100">
               <Headphones className="h-5 w-5 text-white dark:text-slate-900" />
@@ -523,7 +523,7 @@ export default function ContactCenterWidget() {
           </div>
         </div>
       </header>
-      <main className="max-w-[1600px] mx-auto p-4">
+      <main className="px-4 py-4">
         {role === 'supervisor' ? (
           <>
             <SummaryCards queues={queues} agents={agents} />
