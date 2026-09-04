@@ -1,12 +1,12 @@
 'use client'
 
-import ContactCenterWidget from '@/components/cc-widget/wallboard'
+import SplitWidgetsView from '@/components/cc-widget/split-widgets'
 import CJLayout from '@/components/cj-tracker/cj-layout'
 
 export default function Home() {
   return (
     <CJLayout>
-      <ContactCenterWidget />
+      <SplitWidgetsView />
     </CJLayout>
   )
 }
