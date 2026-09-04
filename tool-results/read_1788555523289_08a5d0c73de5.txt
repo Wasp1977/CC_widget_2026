@@ -1,0 +1,543 @@
+     1→'use client';
+     2→
+     3→import { useEffect, useState, useCallback, useRef } from 'react';
+     4→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+     5→import { Badge } from '@/components/ui/badge';
+     6→import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+     7→import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+     8→import {
+     9→  Phone, Users, Clock, AlertTriangle, ArrowUpDown, Headphones,
+    10→  PhoneIncoming, Pause, Power, UserCheck
+    11→} from 'lucide-react';
+    12→
+    13→// ---- Types ----
+    14→interface Queue {
+    15→  id: string;
+    16→  name: string;
+    17→  group: string;
+    18→  slaSeconds: number;
+    19→  awtDay: number;
+    20→  awt10min: number;
+    21→  awtCurrent: number;
+    22→  queueDepth: number;
+    23→  availAgents: number;
+    24→  totalAgents: number;
+    25→  idlePercent: number;
+    26→}
+    27→
+    28→interface Agent {
+    29→  id: string;
+    30→  name: string;
+    31→  login: string;
+    32→  extension: string;
+    33→  queue: string;
+    34→  status: 'online' | 'break' | 'offline';
+    35→  callsToday: number;
+    36→  talkTime: number;
+    37→  waitTime: number;
+    38→  avgCallDuration: number;
+    39→  statusSince: string;
+    40→}
+    41→
+    42→// ---- Initial Data ----
+    43→const INITIAL_QUEUES: Queue[] = [
+    44→  { id: 'q1', name: 'Продажи', group: 'Входящие линии', slaSeconds: 30, awtDay: 45, awt10min: 62, awtCurrent: 28, queueDepth: 3, availAgents: 1, totalAgents: 5, idlePercent: 12 },
+    45→  { id: 'q2', name: 'Поддержка', group: 'Входящие линии', slaSeconds: 60, awtDay: 118, awt10min: 95, awtCurrent: 72, queueDepth: 7, availAgents: 0, totalAgents: 8, idlePercent: 5 },
+    46→  { id: 'q3', name: 'Тех. отдел', group: 'Входящие линии', slaSeconds: 90, awtDay: 32, awt10min: 15, awtCurrent: 0, queueDepth: 0, availAgents: 3, totalAgents: 4, idlePercent: 35 },
+    47→  { id: 'q4', name: 'Биллинг', group: 'Входящие линии', slaSeconds: 30, awtDay: 22, awt10min: 18, awtCurrent: 5, queueDepth: 1, availAgents: 2, totalAgents: 3, idlePercent: 28 },
+    48→  { id: 'q5', name: 'VIP-клиенты', group: 'Входящие линии', slaSeconds: 20, awtDay: 8, awt10min: 4, awtCurrent: 0, queueDepth: 0, availAgents: 2, totalAgents: 2, idlePercent: 40 },
+    49→  { id: 'q6', name: 'Мультискилл', group: 'Входящие линии', slaSeconds: 60, awtDay: 88, awt10min: 120, awtCurrent: 95, queueDepth: 12, availAgents: 0, totalAgents: 6, idlePercent: 2 },
+    50→  { id: 'q7', name: 'Обзвон B2B', group: 'Исходящие линии', slaSeconds: 0, awtDay: 0, awt10min: 0, awtCurrent: 0, queueDepth: 0, availAgents: 2, totalAgents: 4, idlePercent: 50 },
+    51→  { id: 'q8', name: 'Опросы', group: 'Исходящие линии', slaSeconds: 0, awtDay: 0, awt10min: 0, awtCurrent: 0, queueDepth: 0, availAgents: 1, totalAgents: 2, idlePercent: 50 },
+    52→];
+    53→
+    54→const INITIAL_AGENTS: Agent[] = [
+    55→  { id: 'a1', name: 'Иванова Мария', login: 'ivanova', extension: '1001', queue: 'Продажи', status: 'online', callsToday: 47, talkTime: 11200, waitTime: 840, avgCallDuration: 238, statusSince: '2026-08-10T06:30:00Z' },
+    56→  { id: 'a2', name: 'Петров Алексей', login: 'petrov', extension: '1002', queue: 'Продажи', status: 'online', callsToday: 38, talkTime: 8500, waitTime: 620, avgCallDuration: 224, statusSince: '2026-08-10T06:45:00Z' },
+    57→  { id: 'a3', name: 'Сидорова Елена', login: 'sidorova', extension: '1003', queue: 'Поддержка', status: 'online', callsToday: 52, talkTime: 14500, waitTime: 1200, avgCallDuration: 279, statusSince: '2026-08-10T06:15:00Z' },
+    58→  { id: 'a4', name: 'Козлов Дмитрий', login: 'kozlov', extension: '1004', queue: 'Поддержка', status: 'break', callsToday: 41, talkTime: 10200, waitTime: 900, avgCallDuration: 249, statusSince: '2026-08-10T06:50:00Z' },
+    59→  { id: 'a5', name: 'Новикова Анна', login: 'novikova', extension: '1005', queue: 'Тех. отдел', status: 'online', callsToday: 29, talkTime: 9800, waitTime: 450, avgCallDuration: 338, statusSince: '2026-08-10T07:00:00Z' },
+    60→  { id: 'a6', name: 'Морозов Игорь', login: 'morozov', extension: '1006', queue: 'Тех. отдел', status: 'online', callsToday: 33, talkTime: 12000, waitTime: 500, avgCallDuration: 364, statusSince: '2026-08-10T06:20:00Z' },
+    61→  { id: 'a7', name: 'Волкова Ольга', login: 'volkova', extension: '1007', queue: 'Биллинг', status: 'online', callsToday: 44, talkTime: 7600, waitTime: 380, avgCallDuration: 173, statusSince: '2026-08-10T06:40:00Z' },
+    62→  { id: 'a8', name: 'Соколов Андрей', login: 'sokolov', extension: '1008', queue: 'Биллинг', status: 'offline', callsToday: 0, talkTime: 0, waitTime: 0, avgCallDuration: 0, statusSince: '2026-08-10T00:00:00Z' },
+    63→  { id: 'a9', name: 'Кузнецова Татьяна', login: 'kuznetsova', extension: '1009', queue: 'VIP-клиенты', status: 'online', callsToday: 18, talkTime: 5200, waitTime: 200, avgCallDuration: 289, statusSince: '2026-08-10T06:35:00Z' },
+    64→  { id: 'a10', name: 'Попов Максим', login: 'popov', extension: '1010', queue: 'VIP-клиенты', status: 'online', callsToday: 22, talkTime: 6100, waitTime: 280, avgCallDuration: 277, statusSince: '2026-08-10T06:25:00Z' },
+    65→  { id: 'a11', name: 'Лебедева Екатерина', login: 'lebedeva', extension: '1011', queue: 'Мультискилл', status: 'online', callsToday: 55, talkTime: 16000, waitTime: 1500, avgCallDuration: 291, statusSince: '2026-08-10T06:10:00Z' },
+    66→  { id: 'a12', name: 'Федоров Сергей', login: 'fedorov', extension: '1012', queue: 'Мультискилл', status: 'online', callsToday: 48, talkTime: 13800, waitTime: 1100, avgCallDuration: 288, statusSince: '2026-08-10T06:12:00Z' },
+    67→];
+    68→
+    69→// ---- Helpers ----
+    70→function getAwtColor(value: number, sla: number): string {
+    71→  if (sla === 0) return 'text-zinc-400';
+    72→  if (value === 0) return 'text-emerald-600 dark:text-emerald-400';
+    73→  if (value <= sla * 0.5) return 'text-emerald-600 dark:text-emerald-400';
+    74→  if (value <= sla) return 'text-amber-600 dark:text-amber-400';
+    75→  return 'text-red-600 dark:text-red-400';
+    76→}
+    77→
+    78→function getAwtBg(value: number, sla: number): string {
+    79→  if (sla === 0) return '';
+    80→  if (value === 0) return 'bg-emerald-50 dark:bg-emerald-950/30';
+    81→  if (value <= sla * 0.5) return 'bg-emerald-50 dark:bg-emerald-950/30';
+    82→  if (value <= sla) return 'bg-amber-50 dark:bg-amber-950/30';
+    83→  return 'bg-red-50 dark:bg-red-950/30';
+    84→}
+    85→
+    86→function getQueueDepthColor(value: number): string {
+    87→  if (value === 0) return 'text-emerald-600 dark:text-emerald-400';
+    88→  if (value <= 3) return 'text-amber-600 dark:text-amber-400';
+    89→  return 'text-red-600 dark:text-red-400';
+    90→}
+    91→
+    92→function getQueueDepthBg(value: number): string {
+    93→  if (value === 0) return 'bg-emerald-50 dark:bg-emerald-950/30';
+    94→  if (value <= 3) return 'bg-amber-50 dark:bg-amber-950/30';
+    95→  return 'bg-red-50 dark:bg-red-950/30';
+    96→}
+    97→
+    98→function getAvailColor(value: number, total: number): string {
+    99→  if (total === 0) return 'text-zinc-400';
+   100→  if (value > 0) return 'text-emerald-600 dark:text-emerald-400';
+   101→  return 'text-red-600 dark:text-red-400';
+   102→}
+   103→
+   104→function fmt(s: number): string {
+   105→  if (s === 0) return '0:00';
+   106→  const m = Math.floor(s / 60);
+   107→  const sec = s % 60;
+   108→  return `${m}:${sec.toString().padStart(2, '0')}`;
+   109→}
+   110→
+   111→function getStatusDot(status: Agent['status']): string {
+   112→  const map: Record<Agent['status'], string> = {
+   113→    online: 'bg-emerald-500', break: 'bg-amber-500', offline: 'bg-zinc-400',
+   114→  };
+   115→  return map[status];
+   116→}
+   117→
+   118→function getStatusLabel(status: Agent['status']): string {
+   119→  const map: Record<Agent['status'], string> = { online: 'На линии', break: 'Перерыв', offline: 'Отключён' };
+   120→  return map[status];
+   121→}
+   122→
+   123→function getStatusBadge(status: Agent['status']): 'default' | 'secondary' | 'destructive' | 'outline' {
+   124→  const map: Record<Agent['status'], 'default' | 'outline' | 'destructive'> = { online: 'default', break: 'outline', offline: 'destructive' };
+   125→  return map[status];
+   126→}
+   127→
+   128→// ---- Simulation hook ----
+   129→function useRealtimeData() {
+   130→  const [queues, setQueues] = useState<Queue[]>(INITIAL_QUEUES);
+   131→  const [agents, setAgents] = useState<Agent[]>(INITIAL_QUEUES.length > 0 ? INITIAL_AGENTS : []);
+   132→  const tickRef = useRef<ReturnType<typeof setInterval>>();
+   133→
+   134→  const changeAgentStatus = useCallback((agentId: string, newStatus: Agent['status']) => {
+   135→    setAgents(prev => prev.map(a =>
+   136→      a.id === agentId ? { ...a, status: newStatus, statusSince: new Date().toISOString() } : a
+   137→    ));
+   138→  }, []);
+   139→
+   140→  useEffect(() => {
+   141→    tickRef.current = setInterval(() => {
+   142→      setQueues(prev => prev.map(q => {
+   143→        if (q.slaSeconds === 0) return q;
+   144→        return {
+   145→          ...q,
+   146→          awtCurrent: Math.max(0, q.awtCurrent + Math.round((Math.random() - 0.5) * 16)),
+   147→          awt10min: Math.max(0, q.awt10min + Math.round((Math.random() - 0.5) * 10)),
+   148→          awtDay: Math.max(0, q.awtDay + Math.round((Math.random() - 0.5) * 4)),
+   149→          queueDepth: Math.max(0, q.queueDepth + Math.round((Math.random() - 0.5) * 3)),
+   150→          availAgents: Math.max(0, Math.min(q.totalAgents, q.availAgents + (Math.random() < 0.05 ? (Math.random() < 0.5 ? 1 : -1) : 0))),
+   151→        };
+   152→      }));
+   153→
+   154→      setAgents(prev => prev.map(a => {
+   155→        if (a.status === 'offline') return a;
+   156→        let newStatus = a.status;
+   157→        const r = Math.random();
+   158→        if (a.status === 'online' && r < 0.05) newStatus = 'break';
+   159→        else if (a.status === 'break' && r < 0.08) newStatus = 'online';
+   160→        if (newStatus !== a.status) return { ...a, status: newStatus, statusSince: new Date().toISOString() };
+   161→        return a;
+   162→      }));
+   163→    }, 30000);
+   164→
+   165→    return () => { if (tickRef.current) clearInterval(tickRef.current); };
+   166→  }, []);
+   167→
+   168→  return { queues, agents, changeAgentStatus };
+   169→}
+   170→
+   171→// ---- Summary Cards ----
+   172→function SummaryCards({ queues, agents }: { queues: Queue[]; agents: Agent[] }) {
+   173→  const totalInQueue = queues.reduce((s, q) => s + q.queueDepth, 0);
+   174→  const totalOnline = agents.filter(a => a.status === 'online' || a.status === 'call').length;
+   175→  const totalBreak = agents.filter(a => a.status === 'break').length;
+   176→  const criticalQueues = queues.filter(q => q.slaSeconds > 0 && q.awtCurrent > q.slaSeconds).length;
+   177→
+   178→  return (
+   179→    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+   180→      <Card className="border-l-4 border-l-blue-500">
+   181→        <CardContent className="p-3 flex items-center gap-3">
+   182→          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-950/50">
+   183→            <PhoneIncoming className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+   184→          </div>
+   185→          <div>
+   186→            <p className="text-xs text-muted-foreground">В очереди</p>
+   187→            <p className="text-2xl font-bold">{totalInQueue}</p>
+   188→          </div>
+   189→        </CardContent>
+   190→      </Card>
+   191→      <Card className="border-l-4 border-l-emerald-500">
+   192→        <CardContent className="p-3 flex items-center gap-3">
+   193→          <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-950/50">
+   194→            <Headphones className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+   195→          </div>
+   196→          <div>
+   197→            <p className="text-xs text-muted-foreground">На линии</p>
+   198→            <p className="text-2xl font-bold">{totalOnline}</p>
+   199→          </div>
+   200→        </CardContent>
+   201→      </Card>
+   202→      <Card className="border-l-4 border-l-amber-500">
+   203→        <CardContent className="p-3 flex items-center gap-3">
+   204→          <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-950/50">
+   205→            <Pause className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+   206→          </div>
+   207→          <div>
+   208→            <p className="text-xs text-muted-foreground">На перерыве</p>
+   209→            <p className="text-2xl font-bold">{totalBreak}</p>
+   210→          </div>
+   211→        </CardContent>
+   212→      </Card>
+   213→      <Card className={`border-l-4 ${criticalQueues > 0 ? 'border-l-red-500' : 'border-l-emerald-500'}`}>
+   214→        <CardContent className="p-3 flex items-center gap-3">
+   215→          <div className={`p-2 rounded-lg ${criticalQueues > 0 ? 'bg-red-100 dark:bg-red-950/50' : 'bg-emerald-100 dark:bg-emerald-950/50'}`}>
+   216→            <AlertTriangle className={`h-5 w-5 ${criticalQueues > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`} />
+   217→          </div>
+   218→          <div>
+   219→            <p className="text-xs text-muted-foreground">SLA нарушен</p>
+   220→            <p className="text-2xl font-bold">{criticalQueues}</p>
+   221→          </div>
+   222→        </CardContent>
+   223→      </Card>
+   224→    </div>
+   225→  );
+   226→}
+   227→
+   228→// ---- Wallboard Matrix ----
+   229→function WallboardMatrix({ queues }: { queues: Queue[] }) {
+   230→  const groups = queues.reduce<Record<string, Queue[]>>((acc, q) => {
+   231→    if (!acc[q.group]) acc[q.group] = [];
+   232→    acc[q.group].push(q);
+   233→    return acc;
+   234→  }, {});
+   235→
+   236→  const rows = [
+   237→    { key: 'awtDay', label: 'Ср. ожид. (день)', icon: Clock, render: (q: Queue) => ({ text: fmt(q.awtDay), color: getAwtColor(q.awtDay, q.slaSeconds), bg: getAwtBg(q.awtDay, q.slaSeconds) }) },
+   238→    { key: 'awt10min', label: '10 минут', icon: Clock, render: (q: Queue) => ({ text: fmt(q.awt10min), color: getAwtColor(q.awt10min, q.slaSeconds), bg: getAwtBg(q.awt10min, q.slaSeconds) }) },
+   239→    { key: 'awtCurrent', label: 'Текущее', icon: Clock, render: (q: Queue) => ({ text: fmt(q.awtCurrent), color: getAwtColor(q.awtCurrent, q.slaSeconds), bg: getAwtBg(q.awtCurrent, q.slaSeconds) }) },
+   240→    { key: 'queueDepth', label: 'Очередь', icon: Users, render: (q: Queue) => ({ text: String(q.queueDepth), color: getQueueDepthColor(q.queueDepth), bg: getQueueDepthBg(q.queueDepth) }) },
+   241→    { key: 'avail', label: 'Свободно', icon: UserCheck, render: (q: Queue) => ({ text: `${q.availAgents}/${q.totalAgents}`, color: getAvailColor(q.availAgents, q.totalAgents), bg: '' }) },
+   242→    { key: 'idle', label: 'Простой', icon: Pause, render: (q: Queue) => ({ text: `${q.idlePercent}%`, color: q.idlePercent > 30 ? 'text-amber-500' : 'text-emerald-600 dark:text-emerald-400', bg: '' }) },
+   243→  ];
+   244→
+   245→  return (
+   246→    <Card className="overflow-hidden">
+   247→      <CardHeader className="pb-2 px-4 pt-4">
+   248→        <div className="flex items-center justify-between">
+   249→          <CardTitle className="text-base font-semibold flex items-center gap-2">
+   250→            <ArrowUpDown className="h-4 w-4" />
+   251→            Мониторинг очередей
+   252→          </CardTitle>
+   253→          <Badge variant="outline" className="text-xs gap-1">
+   254→            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+   255→            Live
+   256→          </Badge>
+   257→        </div>
+   258→      </CardHeader>
+   259→      <CardContent className="p-0">
+   260→        <div className="overflow-x-auto">
+   261→          <table className="w-full text-sm border-collapse">
+   262→            <thead>
+   263→              <tr>
+   264→                <th className="text-left text-xs text-muted-foreground font-medium p-2 pl-4 min-w-[120px] sticky left-0 bg-card z-10 border-b">Метрика</th>
+   265→                {Object.entries(groups).map(([group, gQueues]) => (
+   266→                  <th key={group} colSpan={gQueues.length} className="text-center text-xs font-semibold p-2 bg-slate-100 dark:bg-slate-800/80 min-w-[80px] border-b border-l">
+   267→                    {group}
+   268→                  </th>
+   269→                ))}
+   270→              </tr>
+   271→              <tr>
+   272→                <th className="p-1 pl-4 sticky left-0 bg-card z-10 border-b"></th>
+   273→                {queues.map(q => (
+   274→                  <th key={q.id} className="text-center text-xs font-medium p-1.5 text-muted-foreground min-w-[80px] border-b border-l">
+   275→                    <TooltipProvider>
+   276→                      <Tooltip>
+   277→                        <TooltipTrigger asChild>
+   278→                          <span className="cursor-default hover:underline">{q.name}</span>
+   279→                        </TooltipTrigger>
+   280→                        <TooltipContent>
+   281→                          <p>SLA: {q.slaSeconds > 0 ? `${q.slaSeconds} сек` : '—'}</p>
+   282→                          <p>Агенты: {q.totalAgents}</p>
+   283→                        </TooltipContent>
+   284→                      </Tooltip>
+   285→                    </TooltipProvider>
+   286→                    {q.slaSeconds > 0 && (
+   287→                      <span className="block text-[10px] text-muted-foreground/70">SLA {q.slaSeconds}с</span>
+   288→                    )}
+   289→                  </th>
+   290→                ))}
+   291→              </tr>
+   292→            </thead>
+   293→            <tbody>
+   294→              {rows.map(row => (
+   295→                <tr key={row.key} className="border-t border-border/50 hover:bg-muted/30">
+   296→                  <td className="p-2 pl-4 text-xs font-medium text-muted-foreground sticky left-0 bg-card z-10 whitespace-nowrap">
+   297→                    <span className="flex items-center gap-1.5">
+   298→                      <row.icon className="h-3 w-3 shrink-0" />
+   299→                      {row.label}
+   300→                    </span>
+   301→                  </td>
+   302→                  {queues.map(q => {
+   303→                    const val = row.render(q);
+   304→                    return (
+   305→                      <td key={`${q.id}-${row.key}`} className={`text-center p-2 font-mono font-bold text-sm transition-colors duration-300 border-l border-border/30 ${val.bg} ${val.color}`}>
+   306→                        {val.text}
+   307→                      </td>
+   308→                    );
+   309→                  })}
+   310→                </tr>
+   311→              ))}
+   312→            </tbody>
+   313→          </table>
+   314→        </div>
+   315→      </CardContent>
+   316→    </Card>
+   317→  );
+   318→}
+   319→
+   320→// ---- Agents Panel ----
+   321→function AgentsPanel({ agents, onChangeStatus }: { agents: Agent[]; onChangeStatus: (id: string, status: Agent['status']) => void }) {
+   322→  const statusOrder: Agent['status'][] = ['online', 'break', 'offline'];
+   323→  const sorted = [...agents].sort((a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status));
+   324→  const totalCalls = agents.reduce((s, a) => s + a.callsToday, 0);
+   325→
+   326→  return (
+   327→    <Card className="overflow-hidden">
+   328→      <CardHeader className="pb-2 px-4 pt-4">
+   329→        <div className="flex items-center justify-between">
+   330→          <CardTitle className="text-base font-semibold flex items-center gap-2">
+   331→            <Users className="h-4 w-4" />
+   332→            Сотрудники
+   333→          </CardTitle>
+   334→          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+   335→            <span>Всего: {agents.length}</span>
+   336→            <span className="text-border">·</span>
+   337→            <span>Звонков: {totalCalls}</span>
+   338→          </div>
+   339→        </div>
+   340→      </CardHeader>
+   341→      <CardContent className="p-0">
+   342→        <div className="max-h-[460px] overflow-y-auto">
+   343→          {sorted.map(agent => (
+   344→            <div
+   345→              key={agent.id}
+   346→              className="flex items-center gap-3 px-4 py-2.5 border-b border-border/50 hover:bg-muted/50 transition-colors"
+   347→            >
+   348→              <div className={`h-2.5 w-2.5 rounded-full shrink-0 ${getStatusDot(agent.status)}`} />
+   349→              <div className="flex-1 min-w-0">
+   350→                <p className="text-sm font-medium truncate">{agent.name}</p>
+   351→                <p className="text-xs text-muted-foreground">{agent.queue} · Внутр. {agent.extension}</p>
+   352→              </div>
+   353→              <div className="flex items-center gap-2 shrink-0">
+   354→                <Badge variant={getStatusBadge(agent.status)} className="text-[11px]">
+   355→                  {getStatusLabel(agent.status)}
+   356→                </Badge>
+   357→                <span className="text-xs text-muted-foreground font-mono w-12 text-right">
+   358→                  {agent.callsToday}зв
+   359→                </span>
+   360→                <select
+   361→                  className="text-xs bg-transparent border border-border rounded px-1.5 py-0.5 text-muted-foreground cursor-pointer hover:bg-muted focus:outline-none focus:ring-1 focus:ring-ring"
+   362→                  value={agent.status}
+   363→                  onChange={(e) => onChangeStatus(agent.id, e.target.value as Agent['status'])}
+   364→                >
+   365→                  <option value="online">На линии</option>
+   366→                  <option value="break">Перерыв</option>
+   367→                  <option value="offline">Отключён</option>
+   368→                </select>
+   369→              </div>
+   370→            </div>
+   371→          ))}
+   372→        </div>
+   373→      </CardContent>
+   374→    </Card>
+   375→  );
+   376→}
+   377→
+   378→// ---- Employee Dashboard ----
+   379→function EmployeeDashboard({ agents, onChangeStatus }: { agents: Agent[]; onChangeStatus: (id: string, status: Agent['status']) => void }) {
+   380→  const me = agents[0] || { id: 'a1', name: 'Иванова Мария', login: 'ivanova', extension: '1001', queue: 'Продажи', status: 'online' as const, callsToday: 0, talkTime: 0, waitTime: 0, avgCallDuration: 0, statusSince: new Date().toISOString() };
+   381→
+   382→  const statusTime = me.statusSince ? Math.floor((Date.now() - new Date(me.statusSince).getTime()) / 1000) : 0;
+   383→
+   384→  return (
+   385→    <div className="space-y-4">
+   386→      <Card>
+   387→        <CardHeader className="pb-3">
+   388→          <CardTitle className="text-base font-semibold">Мой статус</CardTitle>
+   389→        </CardHeader>
+   390→        <CardContent className="space-y-4">
+   391→          <div className="flex items-center gap-4">
+   392→            <div className="h-12 w-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-lg font-bold shrink-0">
+   393→              {me.name.split(' ').map(n => n[0]).join('')}
+   394→            </div>
+   395→            <div>
+   396→              <p className="font-semibold text-lg">{me.name}</p>
+   397→              <p className="text-sm text-muted-foreground">{me.queue} · Внутр. {me.extension}</p>
+   398→            </div>
+   399→          </div>
+   400→          <div className="flex items-center gap-2">
+   401→            <div className={`h-3 w-3 rounded-full ${getStatusDot(me.status)}`} />
+   402→            <span className="text-sm font-medium">{getStatusLabel(me.status)}</span>
+   403→            {statusTime > 0 && (
+   404→              <span className="text-xs text-muted-foreground ml-1">({fmt(statusTime)})</span>
+   405→            )}
+   406→          </div>
+   407→          <div className="grid grid-cols-2 gap-2">
+   408→            {([
+   409→              { status: 'online' as const, label: 'На линии', icon: Phone, activeClass: 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400', hoverClass: 'hover:border-emerald-300 hover:bg-emerald-50/50' },
+   410→              { status: 'break' as const, label: 'Перерыв', icon: Pause, activeClass: 'border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400', hoverClass: 'hover:border-amber-300 hover:bg-amber-50/50' },
+   411→            ] as const).map(btn => (
+   412→              <button
+   413→                key={btn.status}
+   414→                onClick={() => onChangeStatus(me.id, btn.status)}
+   415→                className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all text-sm font-medium ${
+   416→                  me.status === btn.status ? btn.activeClass : `border-border ${btn.hoverClass}`
+   417→                }`}
+   418→              >
+   419→                <btn.icon className="h-4 w-4" />
+   420→                {btn.label}
+   421→              </button>
+   422→            ))}
+   423→            <button
+   424→              onClick={() => onChangeStatus(me.id, 'offline')}
+   425→              className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all text-sm font-medium col-span-2 ${
+   426→                me.status === 'offline'
+   427→                  ? 'border-zinc-500 bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'
+   428→                  : 'border-border hover:border-zinc-400 hover:bg-zinc-50'
+   429→              }`}
+   430→            >
+   431→              <Power className="h-4 w-4" />
+   432→              Отключиться
+   433→            </button>
+   434→          </div>
+   435→        </CardContent>
+   436→      </Card>
+   437→
+   438→      <Card>
+   439→        <CardHeader className="pb-3">
+   440→          <CardTitle className="text-base font-semibold">Моя статистика сегодня</CardTitle>
+   441→        </CardHeader>
+   442→        <CardContent>
+   443→          <div className="grid grid-cols-2 gap-3">
+   444→            {[
+   445→              { label: 'Принято звонков', value: me.callsToday, bgClass: 'bg-blue-50 dark:bg-blue-950/30', textClass: 'text-blue-600 dark:text-blue-400' },
+   446→              { label: 'Время разговора', value: fmt(me.talkTime), bgClass: 'bg-emerald-50 dark:bg-emerald-950/30', textClass: 'text-emerald-600 dark:text-emerald-400' },
+   447→              { label: 'Время ожидания', value: fmt(me.waitTime), bgClass: 'bg-amber-50 dark:bg-amber-950/30', textClass: 'text-amber-600 dark:text-amber-400' },
+   448→              { label: 'Ср. длительность', value: fmt(me.avgCallDuration), bgClass: 'bg-violet-50 dark:bg-violet-950/30', textClass: 'text-violet-600 dark:text-violet-400' },
+   449→            ].map(stat => (
+   450→              <div key={stat.label} className={`p-3 rounded-lg ${stat.bgClass}`}>
+   451→                <p className="text-xs text-muted-foreground mb-1">{stat.label}</p>
+   452→                <p className={`text-2xl font-bold ${stat.textClass}`}>{stat.value}</p>
+   453→              </div>
+   454→            ))}
+   455→          </div>
+   456→        </CardContent>
+   457→      </Card>
+   458→
+   459→      <Card>
+   460→        <CardHeader className="pb-3">
+   461→          <CardTitle className="text-base font-semibold">Моя очередь: {me.queue}</CardTitle>
+   462→        </CardHeader>
+   463→        <CardContent>
+   464→          <div className="space-y-2">
+   465→            {agents
+   466→              .filter(a => a.queue === me.queue && a.id !== me.id)
+   467→              .map(a => (
+   468→                <div key={a.id} className="flex items-center justify-between py-1.5">
+   469→                  <div className="flex items-center gap-2">
+   470→                    <div className={`h-2 w-2 rounded-full ${getStatusDot(a.status)}`} />
+   471→                    <span className="text-sm">{a.name.split(' ')[0]}</span>
+   472→                  </div>
+   473→                  <div className="flex items-center gap-2">
+   474→                    <Badge variant={getStatusBadge(a.status)} className="text-[10px] px-1.5 py-0">
+   475→                      {getStatusLabel(a.status)}
+   476→                    </Badge>
+   477→                    <span className="text-xs text-muted-foreground font-mono">{a.callsToday}зв</span>
+   478→                  </div>
+   479→                </div>
+   480→              ))}
+   481→          </div>
+   482→        </CardContent>
+   483→      </Card>
+   484→    </div>
+   485→  );
+   486→}
+   487→
+   488→// ---- Main Widget ----
+   489→export default function ContactCenterWidget() {
+   490→  const { queues, agents, changeAgentStatus } = useRealtimeData();
+   491→  const [role, setRole] = useState<'supervisor' | 'agent'>('supervisor');
+   492→
+   493→  return (
+   494→    <div className="h-full bg-slate-50 dark:bg-zinc-950 overflow-auto">
+   495→      <header className="bg-white dark:bg-zinc-900 border-b border-border sticky top-0 z-20">
+   496→        <div className="px-4 py-3 flex items-center justify-between">
+   497→          <div className="flex items-center gap-3">
+   498→            <div className="p-2 rounded-lg bg-slate-900 dark:bg-slate-100">
+   499→              <Headphones className="h-5 w-5 text-white dark:text-slate-900" />
+   500→            </div>
+   501→            <div>
+   502→              <h1 className="text-lg font-bold leading-tight">Контакт-центр</h1>
+   503→              <p className="text-xs text-muted-foreground">Виртуальная АТС · Мониторинг</p>
+   504→            </div>
+   505→          </div>
+   506→          <div className="flex items-center gap-3">
+   507→            <div className="flex items-center gap-1.5 text-xs text-emerald-600">
+   508→              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+   509→              Онлайн
+   510→            </div>
+   511→            <Tabs value={role} onValueChange={(v) => setRole(v as 'supervisor' | 'agent')}>
+   512→              <TabsList className="h-8">
+   513→                <TabsTrigger value="supervisor" className="text-xs px-3 h-7 gap-1.5">
+   514→                  <Users className="h-3.5 w-3.5" />
+   515→                  Руководитель
+   516→                </TabsTrigger>
+   517→                <TabsTrigger value="agent" className="text-xs px-3 h-7 gap-1.5">
+   518→                  <Headphones className="h-3.5 w-3.5" />
+   519→                  Сотрудник
+   520→                </TabsTrigger>
+   521→              </TabsList>
+   522→            </Tabs>
+   523→          </div>
+   524→        </div>
+   525→      </header>
+   526→      <main className="px-4 py-4">
+   527→        {role === 'supervisor' ? (
+   528→          <>
+   529→            <SummaryCards queues={queues} agents={agents} />
+   530→            <WallboardMatrix queues={queues} />
+   531→            <div className="mt-4">
+   532→              <AgentsPanel agents={agents} onChangeStatus={changeAgentStatus} />
+   533→            </div>
+   534→          </>
+   535→        ) : (
+   536→          <div className="max-w-md mx-auto">
+   537→            <EmployeeDashboard agents={agents} onChangeStatus={changeAgentStatus} />
+   538→          </div>
+   539→        )}
+   540→      </main>
+   541→    </div>
+   542→  );
+   543→}
