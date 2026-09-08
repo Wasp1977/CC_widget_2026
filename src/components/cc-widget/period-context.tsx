@@ -33,9 +33,9 @@ export interface CallCenter {
 
 export const CALL_CENTERS: CallCenter[] = [
   { id: 'all', name: 'Все колл-центры', shortName: 'Все' },
-  { id: 'cc1', name: 'МТС Контакт-центр', shortName: 'МТС' },
-  { id: 'cc2', name: 'Билайн Сервис', shortName: 'Билайн' },
-  { id: 'cc3', name: 'МегаФон Поддержка', shortName: 'МегаФон' },
+  { id: 'cc1', name: 'Продажи Пермь', shortName: 'Пермь' },
+  { id: 'cc2', name: 'Продажи Москва', shortName: 'Москва' },
+  { id: 'cc3', name: 'Продажи Санкт-Петербург', shortName: 'СПб' },
 ];
 
 // ---- Department stats ----
