@@ -61,3 +61,21 @@ Stage Summary:
 - Полный цикл немодерируемого тестирования: заполнение -> отправка -> просмотр результатов -> AI-анализ
 - Ссылка на результаты: /results
 - Файлы: cj-tracker.tsx, cj-layout.tsx, types.ts, /api/reports/*, /api/analyze, /results/page.tsx
+
+---
+Task ID: period-widgets
+Agent: main
+Task: Add period selector (1h/today/7d/30d) with period-aware widget visibility
+
+Work Log:
+- Created period-context.tsx: Period type (1h/today/7d/30d), PeriodProvider, usePeriod hook, generatePeriodData with mock data for each period
+- Created period-selector.tsx: Visual period selector with icons (Clock/Calendar/CalendarDays/TrendingUp), live indicator for real-time, "Ретроспектива" badge for historical
+- Rewrote kpi-widgets.tsx: Split into RealtimeKpiRow (1h/today: queue depth, online agents, SLA violations, avg wait + SLA ring, agent availability, queue breakdown) and RetrospectiveKpiRow (7d/30d: total calls, avg wait, abandoned calls, avg handle time + SLA ring, service level 80/20, department calls breakdown)
+- Rewrote department-widget.tsx: Split into RealtimeDepartmentView (queue depth pie, agent distribution pie, SLA status donut, department summary cards) and RetrospectiveDepartmentView (calls by department pie, SLA by department bars, abandoned calls pie, department stats cards with calls/handleTime/abandoned)
+- Updated split-widgets.tsx: Wrapped with PeriodProvider, added PeriodSelector in header, dynamic header subtitle based on period
+
+Stage Summary:
+- 4 new period options with contextual widget rendering
+- Real-time periods (1h/today) show operational KPIs: queue depth, agent status, SLA violations
+- Retrospective periods (7d/30d) show historical analytics: total calls, abandoned rate, service level, SLA trends
+- Build passes cleanly, no TypeScript errors

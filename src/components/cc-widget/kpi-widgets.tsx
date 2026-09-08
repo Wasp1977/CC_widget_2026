@@ -2,9 +2,11 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import {
-  PhoneIncoming, Headphones, Pause, AlertTriangle,
-  Users, Clock, UserCheck, TrendingUp, TrendingDown, Minus
+  PhoneIncoming, Headphones, AlertTriangle,
+  Users, Clock, PhoneCall, PhoneMissed,
+  TrendingUp, TrendingDown, Minus, BarChart3, Timer
 } from 'lucide-react';
+import { usePeriod, isRealtimePeriod, isRetrospectivePeriod, PeriodData } from './period-context';
 
 // ---- Types ----
 interface Queue {
@@ -40,7 +42,7 @@ interface KpiWidgetProps {
   agents: Agent[];
 }
 
-// ---- Single KPI Widget ----
+// ---- MetricCard ----
 interface MetricCardProps {
   label: string;
   value: string | number;
@@ -86,7 +88,7 @@ function MetricCard({ label, value, unit, icon: Icon, color, bgColor, trend, tre
   );
 }
 
-// ---- Circular Progress Widget ----
+// ---- CircularProgress ----
 interface CircularProgressProps {
   value: number;
   max: number;
@@ -106,64 +108,40 @@ function CircularProgress({ value, max, label, size = 80, strokeWidth = 6, color
   return (
     <div className="flex flex-col items-center gap-1.5">
       <svg width={size} height={size} className="-rotate-90">
-        <circle
-          cx={size / 2} cy={size / 2} r={radius}
-          fill="none" strokeWidth={strokeWidth}
-          className={trackClass}
-          stroke="currentColor"
-        />
-        <circle
-          cx={size / 2} cy={size / 2} r={radius}
-          fill="none" strokeWidth={strokeWidth}
-          stroke="currentColor"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          className={`${colorClass} transition-all duration-700 ease-out`}
-        />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" strokeWidth={strokeWidth} className={trackClass} stroke="currentColor" />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" strokeWidth={strokeWidth} stroke="currentColor" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className={`${colorClass} transition-all duration-700 ease-out`} />
       </svg>
       <p className="text-[11px] text-muted-foreground text-center leading-tight">{label}</p>
     </div>
   );
 }
 
-// ---- Main KPI Widgets Component ----
-export function KpiWidgets({ queues, agents }: KpiWidgetProps) {
-  const totalInQueue = queues.reduce((s, q) => s + q.queueDepth, 0);
-  const totalOnline = agents.filter(a => a.status === 'online').length;
-  const totalBreak = agents.filter(a => a.status === 'break').length;
-  const totalOffline = agents.filter(a => a.status === 'offline').length;
+// ---- Format helper ----
+const fmt = (s: number) => {
+  if (s === 0) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+};
+
+// ---- Real-time KPI row (1h / today) ----
+function RealtimeKpiRow({ queues, agents, pd }: { queues: Queue[]; agents: Agent[]; pd: PeriodData }) {
+  const totalInQueue = pd.currentQueueDepth ?? queues.reduce((s, q) => s + q.queueDepth, 0);
+  const totalOnline = pd.currentOnlineAgents ?? agents.filter(a => a.status === 'online').length;
+  const totalBreak = pd.currentBreakAgents ?? agents.filter(a => a.status === 'break').length;
+  const totalOffline = pd.currentOfflineAgents ?? agents.filter(a => a.status === 'offline').length;
   const totalAgents = agents.length;
-  const criticalQueues = queues.filter(q => q.slaSeconds > 0 && q.awtCurrent > q.slaSeconds);
-  const criticalCount = criticalQueues.length;
-  const inboundQueues = queues.filter(q => q.slaSeconds > 0);
-  const avgWaitCurrent = inboundQueues.length > 0
-    ? Math.round(inboundQueues.reduce((s, q) => s + q.awtCurrent, 0) / inboundQueues.length)
-    : 0;
+  const criticalCount = pd.currentSlaViolations ?? 0;
+  const avgWait = pd.currentAvgWait ?? 0;
+  const slaRate = pd.slaComplianceRate ?? 100;
   const totalAvail = queues.reduce((s, q) => s + q.availAgents, 0);
   const totalCapacity = queues.reduce((s, q) => s + q.totalAgents, 0);
-  const slaComplianceRate = inboundQueues.length > 0
-    ? Math.round((inboundQueues.filter(q => q.awtCurrent <= q.slaSeconds).length / inboundQueues.length) * 100)
-    : 100;
-
-  const fmt = (s: number) => {
-    if (s === 0) return '0:00';
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${sec.toString().padStart(2, '0')}`;
-  };
+  const inboundCount = pd.totalInboundQueues ?? queues.filter(q => q.slaSeconds > 0).length;
+  const inSlaCount = pd.queuesInSla ?? 0;
 
   return (
-    <div className="space-y-4">
-      {/* Section header */}
-      <div className="flex items-center gap-2">
-        <div className="h-1 w-6 rounded-full bg-primary" />
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          Числовые виджеты
-        </h2>
-      </div>
-
-      {/* Primary KPI row — large numbers */}
+    <>
+      {/* Primary KPI row — real-time large numbers */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard
           label="Клиенты в очереди"
@@ -173,7 +151,7 @@ export function KpiWidgets({ queues, agents }: KpiWidgetProps) {
           bgColor="bg-blue-100 dark:bg-blue-950/40"
           trend={totalInQueue > 10 ? 'up' : totalInQueue === 0 ? 'down' : 'neutral'}
           trendValue={totalInQueue > 10 ? 'высокая' : totalInQueue === 0 ? 'пусто' : 'норма'}
-          subtitle={`в ${inboundQueues.length} очередях`}
+          subtitle={`в ${inboundCount} очередях`}
         />
         <MetricCard
           label="Агенты на линии"
@@ -194,19 +172,19 @@ export function KpiWidgets({ queues, agents }: KpiWidgetProps) {
           bgColor={criticalCount > 0 ? 'bg-red-100 dark:bg-red-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
           trend={criticalCount > 0 ? 'up' : 'down'}
           trendValue={criticalCount > 0 ? 'требует внимания' : 'все в норме'}
-          subtitle={criticalCount > 0 ? `худшая: ${criticalQueues.sort((a, b) => (b.awtCurrent - b.slaSeconds) - (a.awtCurrent - a.slaSeconds))[0]?.name}` : 'SLA соблюдается'}
+          subtitle={criticalCount > 0 ? `${inboundCount - inSlaCount} из ${inboundCount} очередей` : 'SLA соблюдается'}
         />
         <MetricCard
           label="Ср. время ожидания"
-          value={fmt(avgWaitCurrent)}
+          value={fmt(avgWait)}
           icon={Clock}
-          color={avgWaitCurrent > 60 ? 'text-red-600 dark:text-red-400' : avgWaitCurrent > 30 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}
-          bgColor={avgWaitCurrent > 60 ? 'bg-red-100 dark:bg-red-950/40' : avgWaitCurrent > 30 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
+          color={avgWait > 60 ? 'text-red-600 dark:text-red-400' : avgWait > 30 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}
+          bgColor={avgWait > 60 ? 'bg-red-100 dark:bg-red-950/40' : avgWait > 30 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
           subtitle="по всем входящим"
         />
       </div>
 
-      {/* Secondary row — circular progress + smaller cards */}
+      {/* Secondary row — real-time only cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {/* SLA compliance ring */}
         <Card className="hover:shadow-md transition-shadow duration-200">
@@ -215,23 +193,13 @@ export function KpiWidgets({ queues, agents }: KpiWidgetProps) {
               Соблюдение SLA
             </p>
             <div className="relative">
-              <CircularProgress
-                value={slaComplianceRate}
-                max={100}
-                label=""
-                size={100}
-                strokeWidth={8}
-                colorClass={
-                  slaComplianceRate >= 80 ? 'text-emerald-500' :
-                  slaComplianceRate >= 50 ? 'text-amber-500' : 'text-red-500'
-                }
-              />
+              <CircularProgress value={slaRate} max={100} label="" size={100} strokeWidth={8} colorClass={slaRate >= 80 ? 'text-emerald-500' : slaRate >= 50 ? 'text-amber-500' : 'text-red-500'} />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xl font-bold tabular-nums">{slaComplianceRate}%</span>
+                <span className="text-xl font-bold tabular-nums">{slaRate}%</span>
               </div>
             </div>
             <p className="text-[11px] text-muted-foreground text-center">
-              {inboundQueues.filter(q => q.awtCurrent <= q.slaSeconds).length} из {inboundQueues.length} очередей в норме
+              {inSlaCount} из {inboundCount} очередей в норме
             </p>
           </CardContent>
         </Card>
@@ -243,14 +211,7 @@ export function KpiWidgets({ queues, agents }: KpiWidgetProps) {
               Доступность агентов
             </p>
             <div className="flex items-center gap-4 mt-2">
-              <CircularProgress
-                value={totalAvail}
-                max={totalCapacity}
-                label="Свободны"
-                size={70}
-                strokeWidth={6}
-                colorClass={totalAvail > 0 ? 'text-emerald-500' : 'text-red-500'}
-              />
+              <CircularProgress value={totalAvail} max={totalCapacity} label="Свободны" size={70} strokeWidth={6} colorClass={totalAvail > 0 ? 'text-emerald-500' : 'text-red-500'} />
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
@@ -269,28 +230,25 @@ export function KpiWidgets({ queues, agents }: KpiWidgetProps) {
           </CardContent>
         </Card>
 
-        {/* Queue depth breakdown mini */}
+        {/* Queue depth breakdown */}
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
               Распределение очередей
             </p>
             <div className="space-y-2.5">
-              {queues
-                .filter(q => q.slaSeconds > 0)
-                .sort((a, b) => b.queueDepth - a.queueDepth)
-                .slice(0, 5)
-                .map(q => {
-                  const maxDepth = Math.max(...queues.filter(qq => qq.slaSeconds > 0).map(qq => qq.queueDepth), 1);
-                  const pct = (q.queueDepth / maxDepth) * 100;
-                  const barColor = q.queueDepth === 0 ? 'bg-emerald-500' : q.queueDepth <= 3 ? 'bg-amber-500' : 'bg-red-500';
+              {(pd.queueDepthDistribution ?? queues.filter(q => q.slaSeconds > 0).sort((a, b) => b.queueDepth - a.queueDepth).slice(0, 5).map(q => ({ name: q.name, depth: q.queueDepth })))
+                .map((q, i, arr) => {
+                  const maxDepth = Math.max(...arr.map(qq => qq.depth), 1);
+                  const pct = (q.depth / maxDepth) * 100;
+                  const barColor = q.depth === 0 ? 'bg-emerald-500' : q.depth <= 3 ? 'bg-amber-500' : 'bg-red-500';
                   return (
-                    <div key={q.id} className="flex items-center gap-2">
+                    <div key={q.name} className="flex items-center gap-2">
                       <span className="text-[11px] text-muted-foreground w-20 truncate">{q.name}</span>
                       <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                         <div className={`h-full ${barColor} rounded-full transition-all duration-500`} style={{ width: `${pct}%` }} />
                       </div>
-                      <span className="text-xs font-semibold tabular-nums w-5 text-right">{q.queueDepth}</span>
+                      <span className="text-xs font-semibold tabular-nums w-5 text-right">{q.depth}</span>
                     </div>
                   );
                 })}
@@ -298,6 +256,146 @@ export function KpiWidgets({ queues, agents }: KpiWidgetProps) {
           </CardContent>
         </Card>
       </div>
+    </>
+  );
+}
+
+// ---- Retrospective KPI row (7d / 30d) ----
+function RetrospectiveKpiRow({ pd }: { pd: PeriodData }) {
+  const slaPct = pd.slaCompliancePercent;
+  const abandonRate = pd.abandonedRate;
+  const serviceLevel = pd.serviceLevel;
+
+  return (
+    <>
+      {/* Primary KPI row — historical metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <MetricCard
+          label="Всего звонков"
+          value={pd.totalCalls.toLocaleString('ru-RU')}
+          icon={PhoneCall}
+          color="text-blue-600 dark:text-blue-400"
+          bgColor="bg-blue-100 dark:bg-blue-950/40"
+          trend="up"
+          trendValue={`${pd.avgCallsPerDay}/день`}
+          subtitle={`в среднем за период`}
+        />
+        <MetricCard
+          label="Ср. время ожидания"
+          value={fmt(pd.avgWaitTime)}
+          icon={Clock}
+          color={pd.avgWaitTime > 60 ? 'text-red-600 dark:text-red-400' : pd.avgWaitTime > 30 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}
+          bgColor={pd.avgWaitTime > 60 ? 'bg-red-100 dark:bg-red-950/40' : pd.avgWaitTime > 30 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
+          subtitle="по всем входящим"
+        />
+        <MetricCard
+          label="Покинули очередь"
+          value={pd.abandonedCalls}
+          icon={PhoneMissed}
+          color={abandonRate > 8 ? 'text-red-600 dark:text-red-400' : abandonRate > 5 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}
+          bgColor={abandonRate > 8 ? 'bg-red-100 dark:bg-red-950/40' : abandonRate > 5 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
+          trend={abandonRate > 8 ? 'up' : 'down'}
+          trendValue={`${abandonRate}%`}
+          subtitle="не дождались ответа"
+        />
+        <MetricCard
+          label="Ср. длительность"
+          value={fmt(pd.avgHandleTime)}
+          icon={Timer}
+          color="text-violet-600 dark:text-violet-400"
+          bgColor="bg-violet-100 dark:bg-violet-950/40"
+          subtitle="время разговора"
+        />
+      </div>
+
+      {/* Secondary row — retrospective cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        {/* SLA compliance ring (historical) */}
+        <Card className="hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-4 flex flex-col items-center gap-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground self-start">
+              SLA за период
+            </p>
+            <div className="relative">
+              <CircularProgress value={slaPct} max={100} label="" size={100} strokeWidth={8} colorClass={slaPct >= 80 ? 'text-emerald-500' : slaPct >= 50 ? 'text-amber-500' : 'text-red-500'} />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xl font-bold tabular-nums">{slaPct}%</span>
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground text-center">
+              доля звонков в рамках SLA
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Service Level (80/20) */}
+        <Card className="hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-4 flex flex-col items-center gap-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground self-start">
+              Уровень обслуживания
+            </p>
+            <div className="relative">
+              <CircularProgress value={serviceLevel} max={100} label="" size={100} strokeWidth={8} colorClass={serviceLevel >= 80 ? 'text-emerald-500' : serviceLevel >= 60 ? 'text-amber-500' : 'text-red-500'} />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xl font-bold tabular-nums">{serviceLevel}%</span>
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground text-center">
+              отвечены за 20 сек (80/20)
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Department calls breakdown */}
+        <Card className="hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+              Звонки по направлениям
+            </p>
+            <div className="space-y-2.5">
+              {pd.departmentStats
+                .sort((a, b) => b.calls - a.calls)
+                .map(d => {
+                  const maxCalls = Math.max(...pd.departmentStats.map(ds => ds.calls), 1);
+                  const pct = (d.calls / maxCalls) * 100;
+                  return (
+                    <div key={d.name} className="flex items-center gap-2">
+                      <span className="text-[11px] text-muted-foreground w-24 truncate">{d.name}</span>
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="text-xs font-semibold tabular-nums w-12 text-right">{d.calls.toLocaleString('ru-RU')}</span>
+                    </div>
+                  );
+                })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  );
+}
+
+// ---- Main KPI Widgets Component ----
+export function KpiWidgets({ queues, agents }: KpiWidgetProps) {
+  const { period, periodData } = usePeriod();
+  const realtime = isRealtimePeriod(period);
+
+  return (
+    <div className="space-y-4">
+      {/* Section header */}
+      <div className="flex items-center gap-2">
+        <div className={`h-1 w-6 rounded-full ${realtime ? 'bg-blue-500' : 'bg-violet-500'}`} />
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          {realtime ? 'Числовые виджеты' : 'Статистика за период'}
+        </h2>
+      </div>
+
+      {realtime ? (
+        <RealtimeKpiRow queues={queues} agents={agents} pd={periodData} />
+      ) : (
+        <RetrospectiveKpiRow pd={periodData} />
+      )}
     </div>
   );
 }

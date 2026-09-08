@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useState, useEffect, useRef } from 'react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { KpiWidgets } from './kpi-widgets';
 import { DepartmentWidget } from './department-widget';
+import { PeriodProvider, usePeriod, isRealtimePeriod } from './period-context';
+import { PeriodSelector } from './period-selector';
 import {
-  LayoutDashboard, PieChart, Layers
+  LayoutDashboard, PieChart, Layers, Activity
 } from 'lucide-react';
 
 // ---- Types (shared) ----
@@ -101,22 +103,26 @@ function useRealtimeData() {
   return { queues, agents };
 }
 
-// ---- Main Component ----
-export default function SplitWidgetsView() {
+// ---- Inner component (needs period context) ----
+function SplitWidgetsInner() {
   const { queues, agents } = useRealtimeData();
+  const { period } = usePeriod();
+  const realtime = isRealtimePeriod(period);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-card px-4 py-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-primary text-primary-foreground">
+            <div className={`flex items-center justify-center h-9 w-9 rounded-lg ${realtime ? 'bg-primary' : 'bg-violet-600'} text-primary-foreground`}>
               <Layers className="h-5 w-5" />
             </div>
             <div>
               <h1 className="text-base font-bold leading-tight">Виджет контакт-центра</h1>
-              <p className="text-[11px] text-muted-foreground">Виртуальная АТС · Панель супервизора</p>
+              <p className="text-[11px] text-muted-foreground">
+                {realtime ? 'Виртуальная АТС · Панель супервизора' : 'Виртуальная АТС · Ретроспективная аналитика'}
+              </p>
             </div>
           </div>
           <Tabs defaultValue="all" className="w-auto">
@@ -128,23 +134,35 @@ export default function SplitWidgetsView() {
               <TabsTrigger value="numeric" className="text-xs gap-1.5 px-3">
                 Числовые
               </TabsTrigger>
-              <TabsTrigger value="dept" className="text-xs gap-'1.5 px-3">
+              <TabsTrigger value="dept" className="text-xs gap-1.5 px-3">
                 <PieChart className="h-3.5 w-3.5" />
                 Отделы
               </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
+
+        {/* Period selector */}
+        <PeriodSelector />
       </div>
 
       {/* Content */}
       <div className="p-4 space-y-4">
-        {/* KPI Numeric Widgets — always visible */}
+        {/* KPI Numeric Widgets */}
         <KpiWidgets queues={queues} agents={agents} />
 
-        {/* Department Indicators with Pie Charts — always visible */}
+        {/* Department Indicators */}
         <DepartmentWidget queues={queues} agents={agents} />
       </div>
     </div>
+  );
+}
+
+// ---- Main Component (wraps with PeriodProvider) ----
+export default function SplitWidgetsView() {
+  return (
+    <PeriodProvider>
+      <SplitWidgetsInner />
+    </PeriodProvider>
   );
 }
