@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { RATINGS, type CJStep, type CJRating, type StepsState } from './types';
+import { type CJStep, type Feasibility, type StepsState } from './types';
 import {
   ChevronDown,
   ChevronUp,
@@ -12,8 +12,10 @@ import {
   User,
   Mail,
   AlertCircle,
-  Lock,
-  ArrowRight,
+  MessageSquare,
+  CheckCircle2,
+  XCircle,
+  Sparkles,
 } from 'lucide-react';
 
 // ─── Props ───
@@ -40,7 +42,7 @@ function buildReport(
   scenarioName: string,
 ): string {
   const lines: string[] = [
-    '═══ Задания для прототипа: Отчёт ═══',
+    '\u2550\u2550\u2550 Описание виджетов: Отчёт \u2550\u2550\u2550',
     `Дата: ${formatDate()}`,
     `Сценарий: ${scenarioName}`,
   ];
@@ -51,13 +53,16 @@ function buildReport(
     lines.push(`Почта: ${participantEmail.trim()}`);
   }
   lines.push('');
-  lines.push('── Задания и оценки ──');
+  lines.push('\u2500\u2500 Виджеты и оценка реализуемости \u2500\u2500');
   lines.push('');
   steps.forEach((s, i) => {
     const d = state[s.id];
-    lines.push(`Задание ${i + 1}: ${s.label}`);
+    const feasLabel = d?.feasibility === 'can-do' ? 'Сможем сделать' : d?.feasibility === 'cannot-do' ? 'Невозможно сделать' : 'не оценено';
+    lines.push(`Виджет ${i + 1}: ${s.label}`);
+    if (s.tag) lines.push(`  Тип: ${s.tag}`);
+    if (s.periods && s.periods.length > 0) lines.push(`  Периоды: ${s.periods.join(', ')}`);
     lines.push(`  Описание: ${s.description}`);
-    lines.push(`  Оценка: ${d?.rating ? `${d.rating.emoji} ${d.rating.label}` : 'не оценено'}`);
+    lines.push(`  Оценка: ${feasLabel}`);
     if (d?.comment?.trim()) {
       lines.push(`  Комментарий: ${d.comment.trim()}`);
     }
@@ -73,12 +78,11 @@ export default function CJTracker({
   onChange,
 }: CJTrackerProps) {
   const [panelOpen, setPanelOpen] = useState(true);
-  const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [participantName, setParticipantName] = useState('');
   const [participantEmail, setParticipantEmail] = useState('');
   const [state, setState] = useState<StepsState>(() => {
     const init: StepsState = {};
-    steps.forEach((s) => { init[s.id] = { rating: null, comment: '' }; });
+    steps.forEach((s) => { init[s.id] = { feasibility: null, comment: '' }; });
     return init;
   });
   const [submitting, setSubmitting] = useState(false);
@@ -90,17 +94,16 @@ export default function CJTracker({
   useEffect(() => { onChange?.(state); }, [state, onChange]);
 
   // ── Computed ──
-  const allRated = steps.every((s) => state[s.id]?.rating !== null);
-  const ratedCount = steps.filter((s) => state[s.id]?.rating !== null).length;
-  const isLastStep = activeStepIndex === steps.length - 1;
-  const currentStep = steps[activeStepIndex];
-  const currentData = currentStep ? state[currentStep.id] : null;
+  const allAssessed = steps.every((s) => state[s.id]?.feasibility !== null);
+  const assessedCount = steps.filter((s) => state[s.id]?.feasibility !== null).length;
+  const canDoCount = steps.filter((s) => state[s.id]?.feasibility === 'can-do').length;
+  const cannotDoCount = steps.filter((s) => state[s.id]?.feasibility === 'cannot-do').length;
 
   // ── Actions ──
-  const selectRating = useCallback((stepId: string, rating: CJRating | null) => {
+  const setFeasibility = useCallback((stepId: string, f: Feasibility) => {
     setState((prev) => ({
       ...prev,
-      [stepId]: { ...prev[stepId], rating: prev[stepId]?.rating?.value === rating?.value ? null : rating },
+      [stepId]: { ...prev[stepId], feasibility: prev[stepId]?.feasibility === f ? null : f },
     }));
   }, []);
 
@@ -108,27 +111,8 @@ export default function CJTracker({
     setState((prev) => ({ ...prev, [stepId]: { ...prev[stepId], comment } }));
   }, []);
 
-  // Manual advance via "Done" button
-  const goToNext = useCallback(() => {
-    if (!currentStep) return;
-    if (state[currentStep.id]?.rating === null) return;
-    if (isLastStep) return;
-    setActiveStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
-  }, [currentStep, state, isLastStep]);
-
-  // Click on completed step — allow reviewing (set active index back)
-  const handleStepClick = useCallback((idx: number) => {
-    if (submitted) return;
-    const step = steps[idx];
-    // Only allow clicking on completed steps or the active one
-    if (state[step.id]?.rating !== null) {
-      setActiveStepIndex(idx);
-    }
-    // Locked steps do nothing
-  }, [steps, state, submitted]);
-
   const handleSubmit = useCallback(async () => {
-    if (!allRated || submitting) return;
+    if (!allAssessed || submitting) return;
     setSubmitting(true);
     setSubmitError('');
     try {
@@ -137,7 +121,7 @@ export default function CJTracker({
         participantName: participantName.trim(),
         participantEmail: participantEmail.trim(),
         scenarioName,
-        steps: steps.map((s) => ({ id: s.id, label: s.label, description: s.description })),
+        steps: steps.map((s) => ({ id: s.id, label: s.label, description: s.description, tag: s.tag, periods: s.periods })),
         state,
         reportText: report,
         submittedAt: new Date().toISOString(),
@@ -157,14 +141,7 @@ export default function CJTracker({
     } finally {
       setSubmitting(false);
     }
-  }, [allRated, submitting, participantName, participantEmail, steps, state, scenarioName]);
-
-  // ── Step classification ──
-  const getStepStatus = (idx: number): 'completed' | 'active' | 'locked' => {
-    if (idx === activeStepIndex) return 'active';
-    if (state[steps[idx].id]?.rating !== null) return 'completed';
-    return 'locked';
-  };
+  }, [allAssessed, submitting, participantName, participantEmail, steps, state, scenarioName]);
 
   // ── Render ──
   return (
@@ -176,8 +153,8 @@ export default function CJTracker({
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-stone-200 bg-stone-100 shrink-0">
         <div className="flex items-center gap-1.5 text-xs text-stone-500">
-          <ClipboardList className="h-3.5 w-3.5" />
-          <span className="font-semibold text-stone-600">Задания для прототипа</span>
+          <Sparkles className="h-3.5 w-3.5" />
+          <span className="font-semibold text-stone-600">Описание виджетов</span>
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -189,16 +166,17 @@ export default function CJTracker({
           </button>
         </div>
       </div>
+
       <div className="px-3 pb-2 border-b border-stone-200 bg-stone-100/50">
         <p className="text-[11px] text-stone-500 leading-snug">
-          Выполните задания по порядку: оцените эмоцию после каждого шага и нажмите «Готово».
+          Оцените каждый виджет: можно ли его реализовать? Добавьте комментарии и идеи.
         </p>
       </div>
 
       {/* ── Disclaimer ── */}
       <div className="px-3 pt-2 pb-1">
         <p className="text-[10px] text-stone-400 italic leading-tight">
-          Панель исследования (не часть продукта)
+          Панель оценки (не часть продукта)
         </p>
       </div>
 
@@ -230,150 +208,157 @@ export default function CJTracker({
           </div>
 
           {/* Progress indicator */}
-          <div className="flex items-center gap-2 text-[10px] text-stone-400">
-            <div className="flex-1 h-1 rounded-full bg-stone-200 overflow-hidden">
-              <div
-                className="h-full bg-amber-400 rounded-full transition-all duration-500"
-                style={{ width: `${steps.length > 0 ? (ratedCount / steps.length) * 100 : 0}%` }}
-              />
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-[10px] text-stone-400">
+              <div className="flex-1 h-1.5 rounded-full bg-stone-200 overflow-hidden">
+                <div
+                  className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                  style={{ width: `${steps.length > 0 ? (assessedCount / steps.length) * 100 : 0}%` }}
+                />
+              </div>
+              <span>{assessedCount}/{steps.length}</span>
             </div>
-            <span>{ratedCount}/{steps.length}</span>
+            {assessedCount > 0 && (
+              <div className="flex items-center gap-3 text-[10px]">
+                <span className="flex items-center gap-1 text-emerald-600">
+                  <CheckCircle2 className="h-3 w-3" />
+                  {canDoCount} сможем
+                </span>
+                <span className="flex items-center gap-1 text-red-500">
+                  <XCircle className="h-3 w-3" />
+                  {cannotDoCount} невозможно
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Steps list */}
+          {/* Widget cards */}
           {steps.map((step, idx) => {
-            const status = getStepStatus(idx);
             const data = state[step.id];
-            const isCompleted = status === 'completed';
-            const isActive = status === 'active';
-            const isLocked = status === 'locked';
+            const isAssessed = data?.feasibility !== null;
+            const isCanDo = data?.feasibility === 'can-do';
+            const isCannotDo = data?.feasibility === 'cannot-do';
 
             return (
               <div
                 key={step.id}
-                className={`rounded-md border overflow-hidden transition-opacity ${
-                  isLocked
-                    ? 'border-stone-200/60 bg-stone-100/50 opacity-50'
-                    : isActive
-                    ? 'border-amber-300 bg-white ring-1 ring-amber-200'
-                    : 'border-stone-200 bg-white hover:bg-stone-50'
+                className={`rounded-lg border overflow-hidden transition-all ${
+                  submitted
+                    ? 'border-stone-200 bg-stone-100/50'
+                    : isAssessed
+                    ? isCanDo
+                      ? 'border-emerald-200 bg-white'
+                      : 'border-red-200 bg-white'
+                    : 'border-stone-200 bg-white hover:border-stone-300'
                 }`}
               >
-                {/* Step header */}
-                <button
-                  onClick={() => handleStepClick(idx)}
-                  disabled={isLocked}
-                  className={`w-full flex items-center gap-2 px-2.5 py-2 text-left text-xs transition-colors ${
-                    isActive ? 'bg-amber-50/50' : ''
-                  } ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                >
-                  {/* Number badge */}
-                  <span
-                    className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border transition-all ${
-                      isCompleted
-                        ? 'bg-emerald-100 border-emerald-400 text-emerald-700'
-                        : isActive
-                        ? 'bg-amber-100 border-amber-400 text-amber-700'
-                        : 'bg-stone-100 border-stone-300 text-stone-400'
-                    }`}
-                  >
-                    {isCompleted ? '\u2713' : isLocked ? <Lock className="h-2.5 w-2.5" /> : idx + 1}
-                  </span>
-
-                  <span className={`flex-1 truncate ${
-                    isActive ? 'font-semibold text-stone-800' :
-                    isCompleted ? 'text-stone-500' :
-                    'text-stone-400'
-                  }`}>
-                    {step.label}
-                  </span>
-
-                  {isCompleted && data?.rating && (
-                    <span className="shrink-0 text-sm" title={data.rating.label}>{data.rating.emoji}</span>
-                  )}
-
-                  {isActive && (
-                    <ChevronDown className="shrink-0 h-3 w-3 text-amber-500 rotate-180" />
-                  )}
-                </button>
-
-                {/* Rating panel — only for active step */}
-                {isActive && !submitted && (
-                  <div className="px-2.5 pb-2.5 pt-1 space-y-2 border-t border-stone-100">
-                    {/* Step number label */}
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold text-amber-600">ЗАДАНИЕ {idx + 1} ИЗ {steps.length}</span>
+                {/* Card header */}
+                <div className="px-3 pt-2.5 pb-2">
+                  {/* Row 1: number + label + tag */}
+                  <div className="flex items-start gap-2 mb-1.5">
+                    <span
+                      className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border transition-all ${
+                        isAssessed
+                          ? isCanDo
+                            ? 'bg-emerald-100 border-emerald-400 text-emerald-700'
+                            : 'bg-red-100 border-red-400 text-red-700'
+                          : 'bg-stone-100 border-stone-300 text-stone-500'
+                      }`}
+                    >
+                      {isAssessed ? (isCanDo ? '\u2713' : '\u2717') : idx + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-stone-800 leading-tight">{step.label}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        {step.tag && (
+                          <span className="text-[10px] px-1.5 py-0 rounded bg-stone-200 text-stone-500 font-medium">
+                            {step.tag}
+                          </span>
+                        )}
+                        {step.periods && step.periods.length > 0 && (
+                          <span className="text-[10px] text-stone-400">
+                            {step.periods.join(' / ')}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                  </div>
 
-                    {/* Task description */}
-                    <p className="text-[11px] text-stone-600 leading-relaxed">
-                      {step.description}
-                    </p>
+                  {/* Description */}
+                  <p className="text-[11px] text-stone-600 leading-relaxed ml-8">
+                    {step.description}
+                  </p>
+                </div>
 
-                    {/* Emoji rating buttons */}
-                    <div className="grid grid-cols-4 gap-1">
-                      {RATINGS.map((r) => {
-                        const selected = data?.rating?.value === r.value;
-                        return (
-                          <button
-                            key={r.value}
-                            onClick={() => selectRating(step.id, r)}
-                            title={r.label}
-                            className={`flex flex-col items-center gap-0.5 py-1.5 rounded-md border text-sm transition-all ${
-                              selected
-                                ? 'border-amber-400 bg-amber-50 shadow-sm scale-105'
-                                : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50'
-                            }`}
-                          >
-                            <span className="text-base leading-none">{r.emoji}</span>
-                            <span className="text-[9px] leading-tight text-stone-500 truncate w-full text-center">
-                              {r.label}
-                            </span>
-                          </button>
-                        );
-                      })}
+                {/* Feasibility buttons + comment (only if not submitted) */}
+                {!submitted && (
+                  <div className="px-3 pb-2.5 space-y-2 border-t border-stone-100 pt-2">
+                    {/* Two assessment buttons */}
+                    <div className="flex gap-2 ml-8">
+                      <button
+                        onClick={() => setFeasibility(step.id, 'can-do')}
+                        className={`flex-1 flex items-center justify-center gap-1.5 text-xs py-2 rounded-md font-medium border transition-all ${
+                          isCanDo
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300'
+                        }`}
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Сможем сделать
+                      </button>
+                      <button
+                        onClick={() => setFeasibility(step.id, 'cannot-do')}
+                        className={`flex-1 flex items-center justify-center gap-1.5 text-xs py-2 rounded-md font-medium border transition-all ${
+                          isCannotDo
+                            ? 'bg-red-600 text-white border-red-600 shadow-sm'
+                            : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100 hover:border-red-300'
+                        }`}
+                      >
+                        <XCircle className="h-3.5 w-3.5" />
+                        Невозможно сделать
+                      </button>
                     </div>
 
                     {/* Comment */}
-                    <textarea
-                      value={data?.comment || ''}
-                      onChange={(e) => setComment(step.id, e.target.value)}
-                      placeholder="Что было неочевидно? А так же, делитесь вашими идеями!"
-                      className="w-full text-xs p-2 rounded-md border border-stone-200 bg-stone-50 text-stone-700 placeholder:text-stone-400 resize-none focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400"
-                      rows={3}
-                    />
-
-                    {/* Done button */}
-                    <button
-                      onClick={goToNext}
-                      disabled={state[step.id]?.rating === null || isLastStep}
-                      className={`w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-md font-medium transition-all ${
-                        state[step.id]?.rating !== null && !isLastStep
-                          ? 'bg-stone-700 text-white hover:bg-stone-800 active:scale-[0.98]'
-                          : 'bg-stone-200 text-stone-400 cursor-not-allowed'
-                      }`}
-                    >
-                      {isLastStep ? (
-                        <Check className="h-3.5 w-3.5" />
-                      ) : (
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      )}
-                      {isLastStep ? 'Последнее задание' : 'Готово'}
-                    </button>
+                    <div className="ml-8">
+                      <div className="flex items-center gap-1 mb-1">
+                        <MessageSquare className="h-3 w-3 text-stone-400" />
+                        <span className="text-[10px] text-stone-400 font-medium">Комментарий</span>
+                      </div>
+                      <textarea
+                        value={data?.comment || ''}
+                        onChange={(e) => setComment(step.id, e.target.value)}
+                        placeholder="Идеи, замечания, предложения..."
+                        className="w-full text-xs p-2 rounded-md border border-stone-200 bg-stone-50 text-stone-700 placeholder:text-stone-400 resize-none focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400"
+                        rows={2}
+                      />
+                    </div>
                   </div>
                 )}
 
-                {/* Completed step — show comment preview on click */}
-                {isCompleted && activeStepIndex === idx && (
-                  <div className="px-2.5 pb-2 pt-1 border-t border-stone-100">
-                    <p className="text-[10px] text-stone-500 leading-relaxed">
-                      {step.description}
-                    </p>
-                    {data?.comment?.trim() && (
-                      <p className="text-[11px] text-stone-600 mt-1.5 italic">
-                        “{data.comment.trim()}”
-                      </p>
-                    )}
+                {/* Submitted state — show assessment result */}
+                {submitted && (
+                  <div className="px-3 pb-2.5 border-t border-stone-100 pt-2">
+                    <div className="ml-8 flex items-center gap-2">
+                      {isCanDo ? (
+                        <span className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Сможем сделать
+                        </span>
+                      ) : isCannotDo ? (
+                        <span className="flex items-center gap-1.5 text-xs text-red-600 font-medium">
+                          <XCircle className="h-3.5 w-3.5" />
+                          Невозможно сделать
+                        </span>
+                      ) : (
+                        <span className="text-xs text-stone-400">Не оценено</span>
+                      )}
+                      {data?.comment?.trim() && (
+                        <span className="text-[11px] text-stone-500 italic truncate">
+                          &laquo;{data.comment.trim()}&raquo;
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -397,9 +382,9 @@ export default function CJTracker({
             ) : (
               <button
                 onClick={handleSubmit}
-                disabled={!allRated || submitting}
+                disabled={!allAssessed || submitting}
                 className={`w-full flex items-center justify-center gap-2 text-xs py-2.5 rounded-md font-medium transition-all ${
-                  allRated && !submitting
+                  allAssessed && !submitting
                     ? 'bg-amber-500 text-white hover:bg-amber-600 active:scale-[0.98]'
                     : 'bg-stone-200 text-stone-400 cursor-not-allowed'
                 }`}
@@ -413,11 +398,9 @@ export default function CJTracker({
               </button>
             )}
 
-            {!allRated && !submitted && (
+            {!allAssessed && !submitted && (
               <p className="text-[10px] text-stone-400 text-center">
-                {allRated
-                  ? ''
-                  : `Оцените все задания, чтобы отправить отчёт`}
+                Оцените все виджеты, чтобы отправить отчёт
               </p>
             )}
           </div>

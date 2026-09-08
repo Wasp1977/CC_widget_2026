@@ -79,3 +79,21 @@ Stage Summary:
 - Real-time periods (1h/today) show operational KPIs: queue depth, agent status, SLA violations
 - Retrospective periods (7d/30d) show historical analytics: total calls, abandoned rate, service level, SLA trends
 - Build passes cleanly, no TypeScript errors
+
+---
+Task ID: widget-cards-tracker
+Agent: main
+Task: Redesign CJ tracker from UX steps to widget description cards with feasibility buttons
+
+Work Log:
+- Updated types.ts: Added Feasibility type ('can-do' | 'cannot-do'), updated StepData to use feasibility instead of rating, kept CJRating for backward compatibility
+- Rewrote cj-tracker.tsx: Removed emoji ratings and sequential step flow. Each widget is now a card with: label, tag badge, periods, description, two buttons (Сможем сделать / Невозможно сделать), comment textarea. Progress bar shows assessed count + can-do/cannot-do breakdown. Cards are color-coded: emerald border for can-do, red border for cannot-do
+- Updated cj-layout.tsx: Replaced 7 UX test steps with 15 widget descriptions covering all prototype widgets. Each card has tag (Числовые/Кольцо/Полосы/Круговая/Карточки/Навигация) and period availability (1h/today/7d/30d). Changed header from "Задания" to "Описание виджетов", icon from ClipboardList to Sparkles
+- Build passes cleanly
+
+Stage Summary:
+- 15 widget description cards replacing 7 UX test steps
+- Two feasibility buttons instead of 7 emoji ratings
+- Comment field per widget preserved
+- Progress shows: assessed count + can-do/cannot-do breakdown
+- API serialization works as-is (JSON.stringify on state)

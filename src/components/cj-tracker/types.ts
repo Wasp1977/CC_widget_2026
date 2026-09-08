@@ -2,20 +2,28 @@ export interface CJStep {
   id: string;
   label: string;
   description: string;
+  /** Which periods this widget is available for */
+  periods?: ('1h' | 'today' | '7d' | '30d')[];
+  /** Widget type tag shown as badge */
+  tag?: string;
 }
 
+/** Feasibility assessment — replaces emoji rating */
+export type Feasibility = 'can-do' | 'cannot-do';
+
+export interface StepData {
+  feasibility: Feasibility | null;
+  comment: string;
+}
+
+export type StepsState = Record<string, StepData>;
+
+// Keep for backward compatibility with reports API
 export interface CJRating {
   emoji: string;
   label: string;
   value: number;
 }
-
-export interface StepData {
-  rating: CJRating | null;
-  comment: string;
-}
-
-export type StepsState = Record<string, StepData>;
 
 export const RATINGS: CJRating[] = [
   { emoji: '😞', label: 'Разочарование', value: 1 },
