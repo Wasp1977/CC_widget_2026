@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { KpiWidgets } from './kpi-widgets';
 import { DepartmentWidget } from './department-widget';
-import { PeriodProvider, usePeriod, isRealtimePeriod } from './period-context';
+import { PeriodProvider, usePeriod, isRealtimePeriod, PERIOD_LABELS } from './period-context';
 import { PeriodSelector } from './period-selector';
 import {
   LayoutDashboard, PieChart, Layers, Activity
@@ -106,7 +106,7 @@ function useRealtimeData() {
 // ---- Inner component (needs period context) ----
 function SplitWidgetsInner() {
   const { queues, agents } = useRealtimeData();
-  const { period } = usePeriod();
+  const { period, callCenter, periodData } = usePeriod();
   const realtime = isRealtimePeriod(period);
 
   return (
@@ -119,9 +119,14 @@ function SplitWidgetsInner() {
               <Layers className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-base font-bold leading-tight">Виджет контакт-центра</h1>
+              <h1 className="text-base font-bold leading-tight">
+                {callCenter.id === 'all' ? 'Виджет контакт-центра' : callCenter.name}
+              </h1>
               <p className="text-[11px] text-muted-foreground">
-                {realtime ? 'Виртуальная АТС · Панель супервизора' : 'Виртуальная АТС · Ретроспективная аналитика'}
+                {callCenter.id === 'all'
+                  ? (realtime ? 'Все колл-центры · Панель супервизора' : 'Все колл-центры · Ретроспективная аналитика')
+                  : (realtime ? 'Виртуальная АТС · Панель супервизора' : 'Виртуальная АТС · Ретроспективная аналитика')
+                }
               </p>
             </div>
           </div>

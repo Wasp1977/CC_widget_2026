@@ -3,38 +3,22 @@
 import { Card, CardContent } from '@/components/ui/card';
 import {
   PhoneIncoming, Headphones, AlertTriangle,
-  Users, Clock, PhoneCall, PhoneMissed,
-  TrendingUp, TrendingDown, Minus, BarChart3, Timer
+  PhoneCall, PhoneMissed, Clock, Timer, Users,
+  TrendingUp, TrendingDown, Minus, Activity
 } from 'lucide-react';
-import { usePeriod, isRealtimePeriod, isRetrospectivePeriod, PeriodData } from './period-context';
+import { usePeriod, PeriodData, PERIOD_LABELS } from './period-context';
 
 // ---- Types ----
 interface Queue {
-  id: string;
-  name: string;
-  group: string;
-  slaSeconds: number;
-  awtDay: number;
-  awt10min: number;
-  awtCurrent: number;
-  queueDepth: number;
-  availAgents: number;
-  totalAgents: number;
-  idlePercent: number;
+  id: string; name: string; group: string; slaSeconds: number;
+  awtDay: number; awt10min: number; awtCurrent: number; queueDepth: number;
+  availAgents: number; totalAgents: number; idlePercent: number;
 }
 
 interface Agent {
-  id: string;
-  name: string;
-  login: string;
-  extension: string;
-  queue: string;
-  status: 'online' | 'break' | 'offline';
-  callsToday: number;
-  talkTime: number;
-  waitTime: number;
-  avgCallDuration: number;
-  statusSince: string;
+  id: string; name: string; login: string; extension: string; queue: string;
+  status: 'online' | 'break' | 'offline'; callsToday: number;
+  talkTime: number; waitTime: number; avgCallDuration: number; statusSince: string;
 }
 
 interface KpiWidgetProps {
@@ -53,25 +37,35 @@ interface MetricCardProps {
   trend?: 'up' | 'down' | 'neutral';
   trendValue?: string;
   subtitle?: string;
+  /** Show Live badge */
+  isLive?: boolean;
 }
 
-function MetricCard({ label, value, unit, icon: Icon, color, bgColor, trend, trendValue, subtitle }: MetricCardProps) {
+function MetricCard({ label, value, unit, icon: Icon, color, bgColor, trend, trendValue, subtitle, isLive }: MetricCardProps) {
   const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus;
   const trendColor = trend === 'up' ? 'text-emerald-500' : trend === 'down' ? 'text-red-500' : 'text-muted-foreground';
 
   return (
-    <Card className="group hover:shadow-md transition-shadow duration-200">
+    <Card className={`group hover:shadow-md transition-shadow duration-200 ${isLive ? 'border-blue-200 dark:border-blue-800' : ''}`}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className={`p-2.5 rounded-xl ${bgColor}`}>
             <Icon className={`h-5 w-5 ${color}`} />
           </div>
-          {trend && trendValue && (
-            <div className={`flex items-center gap-0.5 text-xs font-medium ${trendColor}`}>
-              <TrendIcon className="h-3 w-3" />
-              {trendValue}
-            </div>
-          )}
+          <div className="flex items-center gap-1.5">
+            {isLive && (
+              <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded-md">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Сейчас
+              </span>
+            )}
+            {trend && trendValue && !isLive && (
+              <div className={`flex items-center gap-0.5 text-xs font-medium ${trendColor}`}>
+                <TrendIcon className="h-3 w-3" />
+                {trendValue}
+              </div>
+            )}
+          </div>
         </div>
         <div className="space-y-1">
           <p className="text-3xl font-bold tracking-tight tabular-nums">
@@ -88,34 +82,6 @@ function MetricCard({ label, value, unit, icon: Icon, color, bgColor, trend, tre
   );
 }
 
-// ---- CircularProgress ----
-interface CircularProgressProps {
-  value: number;
-  max: number;
-  label: string;
-  size?: number;
-  strokeWidth?: number;
-  colorClass?: string;
-  trackClass?: string;
-}
-
-function CircularProgress({ value, max, label, size = 80, strokeWidth = 6, colorClass = 'text-emerald-500', trackClass = 'text-muted-foreground/20' }: CircularProgressProps) {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const percent = max > 0 ? Math.min(value / max, 1) : 0;
-  const offset = circumference * (1 - percent);
-
-  return (
-    <div className="flex flex-col items-center gap-1.5">
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" strokeWidth={strokeWidth} className={trackClass} stroke="currentColor" />
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" strokeWidth={strokeWidth} stroke="currentColor" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className={`${colorClass} transition-all duration-700 ease-out`} />
-      </svg>
-      <p className="text-[11px] text-muted-foreground text-center leading-tight">{label}</p>
-    </div>
-  );
-}
-
 // ---- Format helper ----
 const fmt = (s: number) => {
   if (s === 0) return '0:00';
@@ -124,278 +90,145 @@ const fmt = (s: number) => {
   return `${m}:${sec.toString().padStart(2, '0')}`;
 };
 
-// ---- Real-time KPI row (1h / today) ----
-function RealtimeKpiRow({ queues, agents, pd }: { queues: Queue[]; agents: Agent[]; pd: PeriodData }) {
-  const totalInQueue = pd.currentQueueDepth ?? queues.reduce((s, q) => s + q.queueDepth, 0);
-  const totalOnline = pd.currentOnlineAgents ?? agents.filter(a => a.status === 'online').length;
-  const totalBreak = pd.currentBreakAgents ?? agents.filter(a => a.status === 'break').length;
-  const totalOffline = pd.currentOfflineAgents ?? agents.filter(a => a.status === 'offline').length;
-  const totalAgents = agents.length;
-  const criticalCount = pd.currentSlaViolations ?? 0;
-  const avgWait = pd.currentAvgWait ?? 0;
-  const slaRate = pd.slaComplianceRate ?? 100;
-  const totalAvail = queues.reduce((s, q) => s + q.availAgents, 0);
-  const totalCapacity = queues.reduce((s, q) => s + q.totalAgents, 0);
-  const inboundCount = pd.totalInboundQueues ?? queues.filter(q => q.slaSeconds > 0).length;
-  const inSlaCount = pd.queuesInSla ?? 0;
+// ---- Live Metrics Section (always "now") ----
+function LiveMetricsSection({ pd }: { pd: PeriodData }) {
+  const { currentOperatorsOnline, currentCallsInQueue } = pd.live;
 
   return (
-    <>
-      {/* Primary KPI row — real-time large numbers */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="space-y-3">
+      {/* Section header */}
+      <div className="flex items-center gap-2">
+        <div className="h-1 w-6 rounded-full bg-blue-500" />
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          Оперативные
+        </h2>
+        <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          Live
+        </span>
+      </div>
+
+      {/* 2 Live metric cards */}
+      <div className="grid grid-cols-2 gap-3">
         <MetricCard
-          label="Клиенты в очереди"
-          value={totalInQueue}
-          icon={PhoneIncoming}
-          color="text-blue-600 dark:text-blue-400"
-          bgColor="bg-blue-100 dark:bg-blue-950/40"
-          trend={totalInQueue > 10 ? 'up' : totalInQueue === 0 ? 'down' : 'neutral'}
-          trendValue={totalInQueue > 10 ? 'высокая' : totalInQueue === 0 ? 'пусто' : 'норма'}
-          subtitle={`в ${inboundCount} очередях`}
-        />
-        <MetricCard
-          label="Агенты на линии"
-          value={totalOnline}
-          unit={`/ ${totalAgents}`}
+          label="Операторов на линии"
+          value={currentOperatorsOnline}
           icon={Headphones}
           color="text-emerald-600 dark:text-emerald-400"
           bgColor="bg-emerald-100 dark:bg-emerald-950/40"
-          trend={totalOnline >= totalAgents * 0.8 ? 'up' : 'down'}
-          trendValue={`${Math.round((totalOnline / totalAgents) * 100)}%`}
-          subtitle={`${totalBreak} на перерыве, ${totalOffline} отключены`}
+          isLive
+          subtitle="текущее количество"
         />
         <MetricCard
-          label="Нарушения SLA"
-          value={criticalCount}
-          icon={AlertTriangle}
-          color={criticalCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}
-          bgColor={criticalCount > 0 ? 'bg-red-100 dark:bg-red-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
-          trend={criticalCount > 0 ? 'up' : 'down'}
-          trendValue={criticalCount > 0 ? 'требует внимания' : 'все в норме'}
-          subtitle={criticalCount > 0 ? `${inboundCount - inSlaCount} из ${inboundCount} очередей` : 'SLA соблюдается'}
-        />
-        <MetricCard
-          label="Ср. время ожидания"
-          value={fmt(avgWait)}
-          icon={Clock}
-          color={avgWait > 60 ? 'text-red-600 dark:text-red-400' : avgWait > 30 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}
-          bgColor={avgWait > 60 ? 'bg-red-100 dark:bg-red-950/40' : avgWait > 30 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
-          subtitle="по всем входящим"
+          label="Звонков в очереди"
+          value={currentCallsInQueue}
+          icon={PhoneIncoming}
+          color="text-blue-600 dark:text-blue-400"
+          bgColor="bg-blue-100 dark:bg-blue-950/40"
+          isLive
+          trend={currentCallsInQueue > 15 ? 'up' : currentCallsInQueue === 0 ? 'down' : 'neutral'}
+          trendValue={currentCallsInQueue > 15 ? 'высокая нагрузка' : currentCallsInQueue === 0 ? 'пусто' : undefined}
+          subtitle="текущее количество"
         />
       </div>
-
-      {/* Secondary row — real-time only cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-        {/* SLA compliance ring */}
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-4 flex flex-col items-center gap-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground self-start">
-              Соблюдение SLA
-            </p>
-            <div className="relative">
-              <CircularProgress value={slaRate} max={100} label="" size={100} strokeWidth={8} colorClass={slaRate >= 80 ? 'text-emerald-500' : slaRate >= 50 ? 'text-amber-500' : 'text-red-500'} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xl font-bold tabular-nums">{slaRate}%</span>
-              </div>
-            </div>
-            <p className="text-[11px] text-muted-foreground text-center">
-              {inSlaCount} из {inboundCount} очередей в норме
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Agent availability ring */}
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-4 flex flex-col items-center gap-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground self-start">
-              Доступность агентов
-            </p>
-            <div className="flex items-center gap-4 mt-2">
-              <CircularProgress value={totalAvail} max={totalCapacity} label="Свободны" size={70} strokeWidth={6} colorClass={totalAvail > 0 ? 'text-emerald-500' : 'text-red-500'} />
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                  <span className="text-xs text-muted-foreground">На линии: <strong className="text-foreground">{totalOnline}</strong></span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-                  <span className="text-xs text-muted-foreground">Перерыв: <strong className="text-foreground">{totalBreak}</strong></span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-zinc-400" />
-                  <span className="text-xs text-muted-foreground">Отключены: <strong className="text-foreground">{totalOffline}</strong></span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Queue depth breakdown */}
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-              Распределение очередей
-            </p>
-            <div className="space-y-2.5">
-              {(pd.queueDepthDistribution ?? queues.filter(q => q.slaSeconds > 0).sort((a, b) => b.queueDepth - a.queueDepth).slice(0, 5).map(q => ({ name: q.name, depth: q.queueDepth })))
-                .map((q, i, arr) => {
-                  const maxDepth = Math.max(...arr.map(qq => qq.depth), 1);
-                  const pct = (q.depth / maxDepth) * 100;
-                  const barColor = q.depth === 0 ? 'bg-emerald-500' : q.depth <= 3 ? 'bg-amber-500' : 'bg-red-500';
-                  return (
-                    <div key={q.name} className="flex items-center gap-2">
-                      <span className="text-[11px] text-muted-foreground w-20 truncate">{q.name}</span>
-                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                        <div className={`h-full ${barColor} rounded-full transition-all duration-500`} style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="text-xs font-semibold tabular-nums w-5 text-right">{q.depth}</span>
-                    </div>
-                  );
-                })}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </>
+    </div>
   );
 }
 
-// ---- Retrospective KPI row (7d / 30d) ----
-function RetrospectiveKpiRow({ pd }: { pd: PeriodData }) {
-  const slaPct = pd.slaCompliancePercent;
-  const abandonRate = pd.abandonedRate;
-  const serviceLevel = pd.serviceLevel;
+// ---- Aggregated Metrics Section (by period) ----
+function AggregatedMetricsSection({ pd }: { pd: PeriodData }) {
+  const { aggregated } = pd;
+  const periodLabel = PERIOD_LABELS[pd.period];
 
   return (
-    <>
-      {/* Primary KPI row — historical metrics */}
+    <div className="space-y-3">
+      {/* Section header */}
+      <div className="flex items-center gap-2">
+        <div className="h-1 w-6 rounded-full bg-violet-500" />
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          За период
+        </h2>
+        <span className="text-[10px] text-muted-foreground/60">
+          {periodLabel}
+        </span>
+      </div>
+
+      {/* Row 1: 4 primary aggregated metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard
-          label="Всего звонков"
-          value={pd.totalCalls.toLocaleString('ru-RU')}
+          label="Принято звонков"
+          value={aggregated.callsAnswered.toLocaleString('ru-RU')}
           icon={PhoneCall}
           color="text-blue-600 dark:text-blue-400"
           bgColor="bg-blue-100 dark:bg-blue-950/40"
           trend="up"
           trendValue={`${pd.avgCallsPerDay}/день`}
-          subtitle={`в среднем за период`}
+          subtitle="колл-центром"
         />
         <MetricCard
-          label="Ср. время ожидания"
-          value={fmt(pd.avgWaitTime)}
-          icon={Clock}
-          color={pd.avgWaitTime > 60 ? 'text-red-600 dark:text-red-400' : pd.avgWaitTime > 30 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}
-          bgColor={pd.avgWaitTime > 60 ? 'bg-red-100 dark:bg-red-950/40' : pd.avgWaitTime > 30 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
-          subtitle="по всем входящим"
+          label="Ср. операторов на линии"
+          value={aggregated.avgOperatorsOnline}
+          icon={Users}
+          color="text-emerald-600 dark:text-emerald-400"
+          bgColor="bg-emerald-100 dark:bg-emerald-950/40"
+          subtitle="за период"
         />
         <MetricCard
-          label="Покинули очередь"
-          value={pd.abandonedCalls}
+          label="Повесили до ответа"
+          value={aggregated.callsAbandoned.toLocaleString('ru-RU')}
           icon={PhoneMissed}
-          color={abandonRate > 8 ? 'text-red-600 dark:text-red-400' : abandonRate > 5 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}
-          bgColor={abandonRate > 8 ? 'bg-red-100 dark:bg-red-950/40' : abandonRate > 5 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
-          trend={abandonRate > 8 ? 'up' : 'down'}
-          trendValue={`${abandonRate}%`}
+          color={pd.abandonedRate > 8 ? 'text-red-600 dark:text-red-400' : pd.abandonedRate > 5 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}
+          bgColor={pd.abandonedRate > 8 ? 'bg-red-100 dark:bg-red-950/40' : pd.abandonedRate > 5 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
+          trend={pd.abandonedRate > 8 ? 'up' : 'down'}
+          trendValue={`${pd.abandonedRate}%`}
           subtitle="не дождались ответа"
         />
         <MetricCard
-          label="Ср. длительность"
-          value={fmt(pd.avgHandleTime)}
-          icon={Timer}
-          color="text-violet-600 dark:text-violet-400"
-          bgColor="bg-violet-100 dark:bg-violet-950/40"
-          subtitle="время разговора"
+          label="Превышено время ожидания"
+          value={aggregated.waitTimeExceeded.toLocaleString('ru-RU')}
+          icon={AlertTriangle}
+          color={aggregated.waitTimeExceeded > 50 ? 'text-red-600 dark:text-red-400' : aggregated.waitTimeExceeded > 20 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}
+          bgColor={aggregated.waitTimeExceeded > 50 ? 'bg-red-100 dark:bg-red-950/40' : aggregated.waitTimeExceeded > 20 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
+          trend={aggregated.waitTimeExceeded > 50 ? 'up' : 'down'}
+          trendValue={aggregated.waitTimeExceeded > 50 ? 'критично' : aggregated.waitTimeExceeded > 20 ? 'внимание' : 'норма'}
+          subtitle="в очереди"
         />
       </div>
 
-      {/* Secondary row — retrospective cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-        {/* SLA compliance ring (historical) */}
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-4 flex flex-col items-center gap-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground self-start">
-              SLA за период
-            </p>
-            <div className="relative">
-              <CircularProgress value={slaPct} max={100} label="" size={100} strokeWidth={8} colorClass={slaPct >= 80 ? 'text-emerald-500' : slaPct >= 50 ? 'text-amber-500' : 'text-red-500'} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xl font-bold tabular-nums">{slaPct}%</span>
-              </div>
-            </div>
-            <p className="text-[11px] text-muted-foreground text-center">
-              доля звонков в рамках SLA
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Service Level (80/20) */}
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-4 flex flex-col items-center gap-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground self-start">
-              Уровень обслуживания
-            </p>
-            <div className="relative">
-              <CircularProgress value={serviceLevel} max={100} label="" size={100} strokeWidth={8} colorClass={serviceLevel >= 80 ? 'text-emerald-500' : serviceLevel >= 60 ? 'text-amber-500' : 'text-red-500'} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xl font-bold tabular-nums">{serviceLevel}%</span>
-              </div>
-            </div>
-            <p className="text-[11px] text-muted-foreground text-center">
-              отвечены за 20 сек (80/20)
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Department calls breakdown */}
-        <Card className="hover:shadow-md transition-shadow duration-200">
-          <CardContent className="p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-              Звонки по направлениям
-            </p>
-            <div className="space-y-2.5">
-              {pd.departmentStats
-                .sort((a, b) => b.calls - a.calls)
-                .map(d => {
-                  const maxCalls = Math.max(...pd.departmentStats.map(ds => ds.calls), 1);
-                  const pct = (d.calls / maxCalls) * 100;
-                  return (
-                    <div key={d.name} className="flex items-center gap-2">
-                      <span className="text-[11px] text-muted-foreground w-24 truncate">{d.name}</span>
-                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="text-xs font-semibold tabular-nums w-12 text-right">{d.calls.toLocaleString('ru-RU')}</span>
-                    </div>
-                  );
-                })}
-            </div>
-          </CardContent>
-        </Card>
+      {/* Row 2: 2 secondary aggregated metrics */}
+      <div className="grid grid-cols-2 gap-3">
+        <MetricCard
+          label="Ср. время разговора"
+          value={fmt(aggregated.avgTalkTime)}
+          icon={Timer}
+          color="text-violet-600 dark:text-violet-400"
+          bgColor="bg-violet-100 dark:bg-violet-950/40"
+          subtitle="длительность обработки"
+        />
+        <MetricCard
+          label="Ср. время ожидания"
+          value={fmt(aggregated.avgWaitTime)}
+          icon={Clock}
+          color={aggregated.avgWaitTime > 60 ? 'text-red-600 dark:text-red-400' : aggregated.avgWaitTime > 30 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}
+          bgColor={aggregated.avgWaitTime > 60 ? 'bg-red-100 dark:bg-red-950/40' : aggregated.avgWaitTime > 30 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
+          subtitle="до ответа оператора"
+        />
       </div>
-    </>
+    </div>
   );
 }
 
 // ---- Main KPI Widgets Component ----
 export function KpiWidgets({ queues, agents }: KpiWidgetProps) {
-  const { period, periodData } = usePeriod();
-  const realtime = isRealtimePeriod(period);
+  const { periodData } = usePeriod();
 
   return (
-    <div className="space-y-4">
-      {/* Section header */}
-      <div className="flex items-center gap-2">
-        <div className={`h-1 w-6 rounded-full ${realtime ? 'bg-blue-500' : 'bg-violet-500'}`} />
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          {realtime ? 'Числовые виджеты' : 'Статистика за период'}
-        </h2>
-      </div>
+    <div className="space-y-5">
+      {/* Live metrics — ALWAYS shown, period-independent */}
+      <LiveMetricsSection pd={periodData} />
 
-      {realtime ? (
-        <RealtimeKpiRow queues={queues} agents={agents} pd={periodData} />
-      ) : (
-        <RetrospectiveKpiRow pd={periodData} />
-      )}
+      {/* Aggregated metrics — change with period */}
+      <AggregatedMetricsSection pd={periodData} />
     </div>
   );
 }
