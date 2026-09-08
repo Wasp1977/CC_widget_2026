@@ -114,7 +114,7 @@ export function usePeriod() {
 }
 
 // ---- Mock data generators ----
-function generatePeriodData(period: Period, ccId: string): PeriodData {
+export function generatePeriodData(period: Period, ccId: string): PeriodData {
   // CC-specific multiplier
   const ccFactor = ccId === 'cc1' ? 1.0 : ccId === 'cc2' ? 0.7 : ccId === 'cc3' ? 0.5 : 1.0; // 'all' = 1.0
   const f = ccFactor;

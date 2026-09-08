@@ -106,7 +106,7 @@ function useRealtimeData() {
 // ---- Inner component (needs period context) ----
 function SplitWidgetsInner() {
   const { queues, agents } = useRealtimeData();
-  const { period, callCenter, periodData } = usePeriod();
+  const { period } = usePeriod();
   const realtime = isRealtimePeriod(period);
 
   return (
@@ -120,13 +120,12 @@ function SplitWidgetsInner() {
             </div>
             <div>
               <h1 className="text-base font-bold leading-tight">
-                {callCenter.id === 'all' ? 'Виджет контакт-центра' : callCenter.name}
+                Виджет контакт-центра
               </h1>
               <p className="text-[11px] text-muted-foreground">
-                {callCenter.id === 'all'
-                  ? (realtime ? 'Все колл-центры · Панель супервизора' : 'Все колл-центры · Ретроспективная аналитика')
-                  : (realtime ? 'Виртуальная АТС · Панель супервизора' : 'Виртуальная АТС · Ретроспективная аналитика')
-                }
+                {realtime ? 'Панель супервизора' : 'Ретроспективная аналитика'}
+                {' · '}
+                Выберите колл-центр в каждом виджете
               </p>
             </div>
           </div>

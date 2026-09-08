@@ -1,7 +1,7 @@
 'use client';
 
-import { usePeriod, Period, PERIOD_LABELS, PERIOD_ORDER, isRealtimePeriod, isRetrospectivePeriod, CALL_CENTERS } from './period-context';
-import { Clock, CalendarDays, Calendar, TrendingUp, ChevronDown } from 'lucide-react';
+import { usePeriod, Period, PERIOD_LABELS, PERIOD_ORDER, isRealtimePeriod, isRetrospectivePeriod } from './period-context';
+import { Clock, CalendarDays, Calendar, TrendingUp } from 'lucide-react';
 
 const PERIOD_ICONS: Record<Period, React.ElementType> = {
   '1h': Clock,
@@ -18,31 +18,11 @@ const PERIOD_DESCRIPTIONS: Record<Period, string> = {
 };
 
 export function PeriodSelector() {
-  const { period, setPeriod, callCenter, setCallCenter } = usePeriod();
+  const { period, setPeriod } = usePeriod();
 
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 flex-wrap">
-        {/* Call Center dropdown */}
-        <div className="relative">
-          <select
-            value={callCenter.id}
-            onChange={(e) => {
-              const cc = CALL_CENTERS.find(c => c.id === e.target.value);
-              if (cc) setCallCenter(cc);
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border bg-card text-foreground hover:bg-muted/50 transition-all appearance-none pr-7 cursor-pointer"
-          >
-            {CALL_CENTERS.map(cc => (
-              <option key={cc.id} value={cc.id}>{cc.name}</option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
-        </div>
-
-        {/* Separator */}
-        <div className="h-4 w-px bg-border" />
-
         {/* Period buttons */}
         {PERIOD_ORDER.map(p => {
           const Icon = PERIOD_ICONS[p];
@@ -71,8 +51,6 @@ export function PeriodSelector() {
         })}
       </div>
       <p className="text-[11px] text-muted-foreground/70">
-        {callCenter.id !== 'all' && <span className="text-blue-600 dark:text-blue-400 font-medium">{callCenter.shortName}</span>}
-        {callCenter.id !== 'all' && ' · '}
         {PERIOD_DESCRIPTIONS[period]}
         {isRealtimePeriod(period) && (
           <span className="inline-flex items-center gap-1 ml-2">

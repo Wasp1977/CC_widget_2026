@@ -1,12 +1,16 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   PhoneIncoming, Headphones, AlertTriangle,
   PhoneCall, PhoneMissed, Clock, Timer, Users,
-  TrendingUp, TrendingDown, Minus, Activity
+  TrendingUp, TrendingDown, Minus, ChevronDown
 } from 'lucide-react';
-import { usePeriod, PeriodData, PERIOD_LABELS } from './period-context';
+import {
+  usePeriod, generatePeriodData, CALL_CENTERS,
+  PeriodData, PERIOD_LABELS
+} from './period-context';
 
 // ---- Types ----
 interface Queue {
@@ -26,7 +30,25 @@ interface KpiWidgetProps {
   agents: Agent[];
 }
 
-// ---- MetricCard ----
+// ---- Compact CC Dropdown ----
+function CcDropdown({ ccId, onChange }: { ccId: string; onChange: (id: string) => void }) {
+  return (
+    <div className="relative">
+      <select
+        value={ccId}
+        onChange={(e) => onChange(e.target.value)}
+        className="text-[10px] font-medium pl-1.5 pr-4 py-0.5 rounded-md border border-border bg-card text-muted-foreground hover:text-foreground cursor-pointer appearance-none transition-colors"
+      >
+        {CALL_CENTERS.map(cc => (
+          <option key={cc.id} value={cc.id}>{cc.name}</option>
+        ))}
+      </select>
+      <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 h-2.5 w-2.5 text-muted-foreground pointer-events-none" />
+    </div>
+  );
+}
+
+// ---- MetricCard (display, with CC selector inside) ----
 interface MetricCardProps {
   label: string;
   value: string | number;
@@ -39,9 +61,16 @@ interface MetricCardProps {
   subtitle?: string;
   /** Show Live badge */
   isLive?: boolean;
+  /** CC selector props */
+  ccId: string;
+  onCcChange: (id: string) => void;
 }
 
-function MetricCard({ label, value, unit, icon: Icon, color, bgColor, trend, trendValue, subtitle, isLive }: MetricCardProps) {
+function MetricCard({
+  label, value, unit, icon: Icon, color, bgColor,
+  trend, trendValue, subtitle, isLive,
+  ccId, onCcChange
+}: MetricCardProps) {
   const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus;
   const trendColor = trend === 'up' ? 'text-emerald-500' : trend === 'down' ? 'text-red-500' : 'text-muted-foreground';
 
@@ -77,6 +106,10 @@ function MetricCard({ label, value, unit, icon: Icon, color, bgColor, trend, tre
             <p className="text-[11px] text-muted-foreground/70">{subtitle}</p>
           )}
         </div>
+        {/* CC selector at the bottom of each card */}
+        <div className="mt-3 pt-2 border-t border-border/50">
+          <CcDropdown ccId={ccId} onChange={onCcChange} />
+        </div>
       </CardContent>
     </Card>
   );
@@ -90,10 +123,130 @@ const fmt = (s: number) => {
   return `${m}:${sec.toString().padStart(2, '0')}`;
 };
 
-// ---- Live Metrics Section (always "now") ----
-function LiveMetricsSection({ pd }: { pd: PeriodData }) {
-  const { currentOperatorsOnline, currentCallsInQueue } = pd.live;
+// ---- Smart card wrapper: manages its own CC state + data ----
+function SmartLiveCard({
+  metricKey,
+  label,
+  icon,
+  color,
+  bgColor,
+  subtitle,
+  defaultCcId = 'all',
+}: {
+  metricKey: 'currentOperatorsOnline' | 'currentCallsInQueue';
+  label: string;
+  icon: React.ElementType;
+  color: string;
+  bgColor: string;
+  subtitle: string;
+  defaultCcId?: string;
+}) {
+  const { period } = usePeriod();
+  const [ccId, setCcId] = useState(defaultCcId);
+  const pd = useMemo(() => generatePeriodData(period, ccId), [period, ccId]);
 
+  const rawValue = pd.live[metricKey];
+
+  return (
+    <MetricCard
+      label={label}
+      value={rawValue}
+      icon={icon}
+      color={color}
+      bgColor={bgColor}
+      isLive
+      subtitle={subtitle}
+      ccId={ccId}
+      onCcChange={setCcId}
+      {...(metricKey === 'currentCallsInQueue' ? {
+        trend: rawValue > 15 ? 'up' : rawValue === 0 ? 'down' : 'neutral',
+        trendValue: rawValue > 15 ? 'высокая нагрузка' : rawValue === 0 ? 'пусто' : undefined,
+      } : {})}
+    />
+  );
+}
+
+// ---- Smart aggregated card wrapper ----
+type AggMetricKey = 'callsAnswered' | 'avgOperatorsOnline' | 'callsAbandoned' | 'waitTimeExceeded' | 'avgTalkTime' | 'avgWaitTime';
+
+function SmartAggCard({
+  metricKey,
+  label,
+  icon,
+  color,
+  bgColor,
+  subtitle,
+  defaultCcId = 'all',
+  formatMode = 'number',
+}: {
+  metricKey: AggMetricKey;
+  label: string;
+  icon: React.ElementType;
+  color: string;
+  bgColor: string;
+  subtitle: string;
+  defaultCcId?: string;
+  formatMode?: 'number' | 'time' | 'decimal';
+}) {
+  const { period } = usePeriod();
+  const [ccId, setCcId] = useState(defaultCcId);
+  const pd = useMemo(() => generatePeriodData(period, ccId), [period, ccId]);
+  const agg = pd.aggregated;
+
+  const rawValue = agg[metricKey];
+
+  // Format display value
+  let displayValue: string | number;
+  if (formatMode === 'time') {
+    displayValue = fmt(rawValue);
+  } else if (formatMode === 'decimal') {
+    displayValue = rawValue;
+  } else {
+    displayValue = rawValue.toLocaleString('ru-RU');
+  }
+
+  // Compute per-metric trend/color overrides
+  let trend: 'up' | 'down' | 'neutral' | undefined;
+  let trendValue: string | undefined;
+  let dynamicColor = color;
+  let dynamicBgColor = bgColor;
+
+  if (metricKey === 'callsAnswered') {
+    trend = 'up';
+    trendValue = `${pd.avgCallsPerDay}/день`;
+  } else if (metricKey === 'callsAbandoned') {
+    dynamicColor = pd.abandonedRate > 8 ? 'text-red-600 dark:text-red-400' : pd.abandonedRate > 5 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
+    dynamicBgColor = pd.abandonedRate > 8 ? 'bg-red-100 dark:bg-red-950/40' : pd.abandonedRate > 5 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40';
+    trend = pd.abandonedRate > 8 ? 'up' : 'down';
+    trendValue = `${pd.abandonedRate}%`;
+  } else if (metricKey === 'waitTimeExceeded') {
+    dynamicColor = rawValue > 50 ? 'text-red-600 dark:text-red-400' : rawValue > 20 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
+    dynamicBgColor = rawValue > 50 ? 'bg-red-100 dark:bg-red-950/40' : rawValue > 20 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40';
+    trend = rawValue > 50 ? 'up' : 'down';
+    trendValue = rawValue > 50 ? 'критично' : rawValue > 20 ? 'внимание' : 'норма';
+  } else if (metricKey === 'avgWaitTime') {
+    dynamicColor = rawValue > 60 ? 'text-red-600 dark:text-red-400' : rawValue > 30 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
+    dynamicBgColor = rawValue > 60 ? 'bg-red-100 dark:bg-red-950/40' : rawValue > 30 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40';
+  }
+
+  return (
+    <MetricCard
+      label={label}
+      value={displayValue}
+      icon={icon}
+      color={dynamicColor}
+      bgColor={dynamicBgColor}
+      trend={trend}
+      trendValue={trendValue}
+      subtitle={subtitle}
+      ccId={ccId}
+      onCcChange={setCcId}
+    />
+  );
+}
+
+// ---- Live Metrics Section (always "now") ----
+function LiveMetricsSection() {
   return (
     <div className="space-y-3">
       {/* Section header */}
@@ -110,24 +263,20 @@ function LiveMetricsSection({ pd }: { pd: PeriodData }) {
 
       {/* 2 Live metric cards */}
       <div className="grid grid-cols-2 gap-3">
-        <MetricCard
+        <SmartLiveCard
+          metricKey="currentOperatorsOnline"
           label="Операторов на линии"
-          value={currentOperatorsOnline}
           icon={Headphones}
           color="text-emerald-600 dark:text-emerald-400"
           bgColor="bg-emerald-100 dark:bg-emerald-950/40"
-          isLive
           subtitle="текущее количество"
         />
-        <MetricCard
+        <SmartLiveCard
+          metricKey="currentCallsInQueue"
           label="Звонков в очереди"
-          value={currentCallsInQueue}
           icon={PhoneIncoming}
           color="text-blue-600 dark:text-blue-400"
           bgColor="bg-blue-100 dark:bg-blue-950/40"
-          isLive
-          trend={currentCallsInQueue > 15 ? 'up' : currentCallsInQueue === 0 ? 'down' : 'neutral'}
-          trendValue={currentCallsInQueue > 15 ? 'высокая нагрузка' : currentCallsInQueue === 0 ? 'пусто' : undefined}
           subtitle="текущее количество"
         />
       </div>
@@ -136,9 +285,9 @@ function LiveMetricsSection({ pd }: { pd: PeriodData }) {
 }
 
 // ---- Aggregated Metrics Section (by period) ----
-function AggregatedMetricsSection({ pd }: { pd: PeriodData }) {
-  const { aggregated } = pd;
-  const periodLabel = PERIOD_LABELS[pd.period];
+function AggregatedMetricsSection() {
+  const { period } = usePeriod();
+  const periodLabel = PERIOD_LABELS[period];
 
   return (
     <div className="space-y-3">
@@ -155,63 +304,60 @@ function AggregatedMetricsSection({ pd }: { pd: PeriodData }) {
 
       {/* Row 1: 4 primary aggregated metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <MetricCard
+        <SmartAggCard
+          metricKey="callsAnswered"
           label="Принято звонков"
-          value={aggregated.callsAnswered.toLocaleString('ru-RU')}
           icon={PhoneCall}
           color="text-blue-600 dark:text-blue-400"
           bgColor="bg-blue-100 dark:bg-blue-950/40"
-          trend="up"
-          trendValue={`${pd.avgCallsPerDay}/день`}
           subtitle="колл-центром"
         />
-        <MetricCard
+        <SmartAggCard
+          metricKey="avgOperatorsOnline"
           label="Ср. операторов на линии"
-          value={aggregated.avgOperatorsOnline}
           icon={Users}
           color="text-emerald-600 dark:text-emerald-400"
           bgColor="bg-emerald-100 dark:bg-emerald-950/40"
           subtitle="за период"
+          formatMode="decimal"
         />
-        <MetricCard
+        <SmartAggCard
+          metricKey="callsAbandoned"
           label="Повесили до ответа"
-          value={aggregated.callsAbandoned.toLocaleString('ru-RU')}
           icon={PhoneMissed}
-          color={pd.abandonedRate > 8 ? 'text-red-600 dark:text-red-400' : pd.abandonedRate > 5 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}
-          bgColor={pd.abandonedRate > 8 ? 'bg-red-100 dark:bg-red-950/40' : pd.abandonedRate > 5 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
-          trend={pd.abandonedRate > 8 ? 'up' : 'down'}
-          trendValue={`${pd.abandonedRate}%`}
+          color="text-emerald-600 dark:text-emerald-400"
+          bgColor="bg-emerald-100 dark:bg-emerald-950/40"
           subtitle="не дождались ответа"
         />
-        <MetricCard
+        <SmartAggCard
+          metricKey="waitTimeExceeded"
           label="Превышено время ожидания"
-          value={aggregated.waitTimeExceeded.toLocaleString('ru-RU')}
           icon={AlertTriangle}
-          color={aggregated.waitTimeExceeded > 50 ? 'text-red-600 dark:text-red-400' : aggregated.waitTimeExceeded > 20 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}
-          bgColor={aggregated.waitTimeExceeded > 50 ? 'bg-red-100 dark:bg-red-950/40' : aggregated.waitTimeExceeded > 20 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
-          trend={aggregated.waitTimeExceeded > 50 ? 'up' : 'down'}
-          trendValue={aggregated.waitTimeExceeded > 50 ? 'критично' : aggregated.waitTimeExceeded > 20 ? 'внимание' : 'норма'}
+          color="text-emerald-600 dark:text-emerald-400"
+          bgColor="bg-emerald-100 dark:bg-emerald-950/40"
           subtitle="в очереди"
         />
       </div>
 
       {/* Row 2: 2 secondary aggregated metrics */}
       <div className="grid grid-cols-2 gap-3">
-        <MetricCard
+        <SmartAggCard
+          metricKey="avgTalkTime"
           label="Ср. время разговора"
-          value={fmt(aggregated.avgTalkTime)}
           icon={Timer}
           color="text-violet-600 dark:text-violet-400"
           bgColor="bg-violet-100 dark:bg-violet-950/40"
           subtitle="длительность обработки"
+          formatMode="time"
         />
-        <MetricCard
+        <SmartAggCard
+          metricKey="avgWaitTime"
           label="Ср. время ожидания"
-          value={fmt(aggregated.avgWaitTime)}
           icon={Clock}
-          color={aggregated.avgWaitTime > 60 ? 'text-red-600 dark:text-red-400' : aggregated.avgWaitTime > 30 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}
-          bgColor={aggregated.avgWaitTime > 60 ? 'bg-red-100 dark:bg-red-950/40' : aggregated.avgWaitTime > 30 ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-emerald-100 dark:bg-emerald-950/40'}
+          color="text-emerald-600 dark:text-emerald-400"
+          bgColor="bg-emerald-100 dark:bg-emerald-950/40"
           subtitle="до ответа оператора"
+          formatMode="time"
         />
       </div>
     </div>
@@ -220,15 +366,13 @@ function AggregatedMetricsSection({ pd }: { pd: PeriodData }) {
 
 // ---- Main KPI Widgets Component ----
 export function KpiWidgets({ queues, agents }: KpiWidgetProps) {
-  const { periodData } = usePeriod();
-
   return (
     <div className="space-y-5">
       {/* Live metrics — ALWAYS shown, period-independent */}
-      <LiveMetricsSection pd={periodData} />
+      <LiveMetricsSection />
 
       {/* Aggregated metrics — change with period */}
-      <AggregatedMetricsSection pd={periodData} />
+      <AggregatedMetricsSection />
     </div>
   );
 }
