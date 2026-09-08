@@ -97,3 +97,22 @@ Stage Summary:
 - Comment field per widget preserved
 - Progress shows: assessed count + can-do/cannot-do breakdown
 - API serialization works as-is (JSON.stringify on state)
+
+---
+Task ID: 8-metrics-redesign
+Agent: main
+Task: Rebuild widgets with 8 specified metrics, CC selector, live/aggregated split
+
+Work Log:
+- Rewrote period-context.tsx: Added CallCenter type (id/name/shortName), CALL_CENTERS array (Все/МТС/Билайн/МегаФон), LiveMetrics interface (currentOperatorsOnline, currentCallsInQueue), AggregatedMetrics interface (callsAnswered, avgOperatorsOnline, callsAbandoned, waitTimeExceeded, avgTalkTime, avgWaitTime), CC-specific multiplier for mock data
+- Rewrote kpi-widgets.tsx: Split into LiveMetricsSection (always "now", 2 cards with pulsing "Сейчас" badge, blue border) and AggregatedMetricsSection (6 cards, changes with period). MetricCard now has isLive prop for Live badge
+- Rewrote period-selector.tsx: Added call center dropdown before period buttons, separator between CC and period, CC short name in description line
+- Updated split-widgets.tsx: Header shows CC name when specific CC selected, "Все колл-центры" when aggregated
+- Updated cj-layout.tsx: 14 widget cards (w1-w14): 2 navigation, 2 live (Оперативный), 6 aggregated, 4 department charts
+- Pushed to GitHub: 24836d8
+
+Stage Summary:
+- 8 metrics as specified: 2 live (operators online, calls in queue) + 6 aggregated (answered, avg operators, abandoned, wait exceeded, avg talk, avg wait)
+- Live metrics ALWAYS show current value regardless of period, with "Сейчас" + pulsing green badge
+- Call center selector with 4 options (Все/МТС/Билайн/МегаФон), data scales by CC factor
+- Period filter is common for entire dashboard, live section unaffected
