@@ -3,25 +3,27 @@
 import { createContext, useContext, useState, useCallback, useMemo } from 'react';
 
 // ---- Period Types ----
-export type Period = '1h' | 'today' | '7d' | '30d';
+export type Period = '1h' | '1d' | '7d' | '30d' | 'quarter' | 'year';
 
 export const PERIOD_LABELS: Record<Period, string> = {
-  '1h': '1 час',
-  'today': 'Сегодня',
-  '7d': '7 дней',
+  '1h': 'Час',
+  '1d': 'Сутки',
+  '7d': 'Неделя',
   '30d': 'Месяц',
+  'quarter': 'Квартал',
+  'year': 'Год',
 };
 
-export const PERIOD_ORDER: Period[] = ['1h', 'today', '7d', '30d'];
+export const PERIOD_ORDER: Period[] = ['1h', '1d', '7d', '30d', 'quarter', 'year'];
 
 /** True if the period represents a real-time / current snapshot */
 export function isRealtimePeriod(p: Period): boolean {
-  return p === '1h' || p === 'today';
+  return p === '1h';
 }
 
 /** True if the period is retrospective (historical) */
 export function isRetrospectivePeriod(p: Period): boolean {
-  return p === '7d' || p === '30d';
+  return p === '7d' || p === '30d' || p === 'quarter' || p === 'year';
 }
 
 // ---- Call Center Types ----
@@ -38,30 +40,24 @@ export const CALL_CENTERS: CallCenter[] = [
   { id: 'cc3', name: 'Продажи Санкт-Петербург', shortName: 'СПб' },
 ];
 
-// ---- Department stats ----
-export interface DeptHistoricalStats {
-  name: string;
-  calls: number;
-  avgWait: number;
-  slaCompliance: number;
-  abandoned: number;
-  avgHandleTime: number;
-  peakHour: number;
+// ---- Bar chart data point ----
+export interface BarDataPoint {
+  label: string;
+  value: number;
 }
 
-// ---- The 8 specified metrics ----
+// ---- SLA bar data per queue ----
+export interface SlaBarData {
+  queue: string;
+  slaTarget: number;   // seconds
+  avgWait: number;     // seconds actual
+  compliance: number;  // 0..100
+}
+
+// ---- Live Metrics ----
 export interface LiveMetrics {
   currentOperatorsOnline: number;
   currentCallsInQueue: number;
-}
-
-export interface AggregatedMetrics {
-  callsAnswered: number;
-  avgOperatorsOnline: number;
-  callsAbandoned: number;
-  waitTimeExceeded: number;
-  avgTalkTime: number;
-  avgWaitTime: number;
 }
 
 // ---- Full period data ----
@@ -69,13 +65,16 @@ export interface PeriodData {
   period: Period;
   callCenterId: string;
   live: LiveMetrics;
-  aggregated: AggregatedMetrics;
-  abandonedRate: number;
-  serviceLevel: number;
-  slaCompliancePercent: number;
-  avgCallsPerDay: number;
-  departmentStats: DeptHistoricalStats[];
-  queueDepthDistribution?: { name: string; depth: number }[];
+
+  // ── Bar chart data for operators online by period granularity ──
+  operatorsOnlineBars: BarDataPoint[];
+  // ── Bar chart data for calls in queue by period granularity ──
+  callsInQueueBars: BarDataPoint[];
+  // ── SLA per-queue bar data ──
+  slaBarData: SlaBarData[];
+
+  // ── Queue depth distribution for pie chart ──
+  queueDepthDistribution: { name: string; depth: number }[];
 }
 
 // ---- Context ----
@@ -95,6 +94,12 @@ export function usePeriod() {
   return ctx;
 }
 
+// ---- Seeded random for consistent mock data ----
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
 // ---- Mock data generators ----
 export function generatePeriodData(period: Period, ccId: string): PeriodData {
   const ccFactor = ccId === 'cc1' ? 1.0 : ccId === 'cc2' ? 0.7 : ccId === 'cc3' ? 0.5 : 1.0;
@@ -105,91 +110,136 @@ export function generatePeriodData(period: Period, ccId: string): PeriodData {
     currentCallsInQueue: Math.round(23 * f),
   };
 
+  // Generate bar data based on period granularity
+  const operatorsOnlineBars = generateBars(period, f, 9, 3, 'ops');
+  const callsInQueueBars = generateBars(period, f, 23, 10, 'queue');
+
+  // SLA per-queue bar data
+  const slaBarData: SlaBarData[] = [
+    { queue: 'Продажи', slaTarget: 30, avgWait: 28, compliance: 85 },
+    { queue: 'Поддержка', slaTarget: 60, avgWait: 72, compliance: 58 },
+    { queue: 'Тех. отдел', slaTarget: 90, avgWait: 15, compliance: 100 },
+    { queue: 'Биллинг', slaTarget: 30, avgWait: 22, compliance: 92 },
+    { queue: 'VIP-клиенты', slaTarget: 20, avgWait: 4, compliance: 98 },
+    { queue: 'Мультискилл', slaTarget: 60, avgWait: 95, compliance: 42 },
+  ].map(d => ({
+    ...d,
+    avgWait: Math.round(d.avgWait * f + (1 - f) * 5),
+    compliance: Math.round(d.compliance * (0.5 + 0.5 * f)),
+  }));
+
+  const queueDepthDistribution = [
+    { name: 'Мультискилл', depth: Math.round(12 * f) },
+    { name: 'Поддержка', depth: Math.round(7 * f) },
+    { name: 'Продажи', depth: Math.round(3 * f) },
+    { name: 'Биллинг', depth: Math.round(1 * f) },
+  ];
+
+  return {
+    period, callCenterId: ccId, live,
+    operatorsOnlineBars, callsInQueueBars, slaBarData,
+    queueDepthDistribution,
+  };
+}
+
+// ---- Bar data generator by period ----
+function generateBars(
+  period: Period,
+  factor: number,
+  baseValue: number,
+  variance: number,
+  seedPrefix: string,
+): BarDataPoint[] {
+  const seedBase = hashStr(seedPrefix);
+
   switch (period) {
     case '1h':
-      return {
-        period: '1h', callCenterId: ccId, live,
-        aggregated: {
-          callsAnswered: Math.round(87 * f),
-          avgOperatorsOnline: Math.round(8 * f * 10) / 10,
-          callsAbandoned: Math.round(5 * f),
-          waitTimeExceeded: Math.round(12 * f),
-          avgTalkTime: 248,
-          avgWaitTime: 42,
-        },
-        abandonedRate: 5.7, serviceLevel: 72, slaCompliancePercent: 67, avgCallsPerDay: Math.round(87 * f),
-        queueDepthDistribution: [
-          { name: 'Мультискилл', depth: Math.round(12 * f) },
-          { name: 'Поддержка', depth: Math.round(7 * f) },
-          { name: 'Продажи', depth: Math.round(3 * f) },
-          { name: 'Биллинг', depth: Math.round(1 * f) },
-        ],
-        departmentStats: [
-          { name: 'Входящие линии', calls: Math.round(78 * f), avgWait: 48, slaCompliance: 65, abandoned: Math.round(5 * f), avgHandleTime: 256, peakHour: 11 },
-          { name: 'Исходящие линии', calls: Math.round(9 * f), avgWait: 0, slaCompliance: 100, abandoned: 0, avgHandleTime: 180, peakHour: 14 },
-        ],
-      };
+      // Single large value — no bars
+      return [{
+        label: 'Сейчас',
+        value: Math.round(baseValue * factor),
+      }];
 
-    case 'today':
-      return {
-        period: 'today', callCenterId: ccId, live,
-        aggregated: {
-          callsAnswered: Math.round(412 * f),
-          avgOperatorsOnline: Math.round(7.8 * f * 10) / 10,
-          callsAbandoned: Math.round(23 * f),
-          waitTimeExceeded: Math.round(38 * f),
-          avgTalkTime: 252,
-          avgWaitTime: 46,
-        },
-        abandonedRate: 5.6, serviceLevel: 75, slaCompliancePercent: 72, avgCallsPerDay: Math.round(412 * f),
-        queueDepthDistribution: [
-          { name: 'Мультискилл', depth: Math.round(12 * f) },
-          { name: 'Поддержка', depth: Math.round(7 * f) },
-          { name: 'Продажи', depth: Math.round(3 * f) },
-          { name: 'Биллинг', depth: Math.round(1 * f) },
-        ],
-        departmentStats: [
-          { name: 'Входящие линии', calls: Math.round(368 * f), avgWait: 48, slaCompliance: 70, abandoned: Math.round(22 * f), avgHandleTime: 261, peakHour: 11 },
-          { name: 'Исходящие линии', calls: Math.round(44 * f), avgWait: 0, slaCompliance: 100, abandoned: Math.round(1 * f), avgHandleTime: 185, peakHour: 15 },
-        ],
-      };
+    case '1d': {
+      // 24 bars by hour
+      return Array.from({ length: 24 }, (_, h) => ({
+        label: `${h}`,
+        value: Math.round(
+          baseValue * factor
+          * (0.4 + 0.6 * hourWeight(h))
+          + (seededRandom(seedBase + h) - 0.5) * variance * factor
+        ),
+      }));
+    }
 
-    case '7d':
-      return {
-        period: '7d', callCenterId: ccId, live,
-        aggregated: {
-          callsAnswered: Math.round(2847 * f),
-          avgOperatorsOnline: Math.round(7.6 * f * 10) / 10,
-          callsAbandoned: Math.round(152 * f),
-          waitTimeExceeded: Math.round(224 * f),
-          avgTalkTime: 246,
-          avgWaitTime: 44,
-        },
-        abandonedRate: 5.3, serviceLevel: 80, slaCompliancePercent: 78, avgCallsPerDay: Math.round(407 * f),
-        departmentStats: [
-          { name: 'Входящие линии', calls: Math.round(2534 * f), avgWait: 47, slaCompliance: 76, abandoned: Math.round(148 * f), avgHandleTime: 258, peakHour: 11 },
-          { name: 'Исходящие линии', calls: Math.round(313 * f), avgWait: 2, slaCompliance: 98, abandoned: Math.round(4 * f), avgHandleTime: 182, peakHour: 14 },
-        ],
-      };
+    case '7d': {
+      // 7 bars by day of week
+      const dayNames = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+      return dayNames.map((d, i) => ({
+        label: d,
+        value: Math.round(
+          baseValue * factor
+          * (i < 5 ? 1.0 : 0.5)  // weekends lower
+          + (seededRandom(seedBase + i + 100) - 0.5) * variance * factor
+        ),
+      }));
+    }
 
-    case '30d':
-      return {
-        period: '30d', callCenterId: ccId, live,
-        aggregated: {
-          callsAnswered: Math.round(12380 * f),
-          avgOperatorsOnline: Math.round(7.9 * f * 10) / 10,
-          callsAbandoned: Math.round(612 * f),
-          waitTimeExceeded: Math.round(890 * f),
-          avgTalkTime: 244,
-          avgWaitTime: 42,
-        },
-        abandonedRate: 4.9, serviceLevel: 83, slaCompliancePercent: 82, avgCallsPerDay: Math.round(413 * f),
-        departmentStats: [
-          { name: 'Входящие линии', calls: Math.round(11024 * f), avgWait: 45, slaCompliance: 80, abandoned: Math.round(598 * f), avgHandleTime: 254, peakHour: 11 },
-          { name: 'Исходящие линии', calls: Math.round(1356 * f), avgWait: 3, slaCompliance: 97, abandoned: Math.round(14 * f), avgHandleTime: 178, peakHour: 15 },
-        ],
-      };
+    case '30d': {
+      // 30 bars by day of month
+      return Array.from({ length: 30 }, (_, i) => ({
+        label: `${i + 1}`,
+        value: Math.round(
+          baseValue * factor
+          + (seededRandom(seedBase + i + 200) - 0.5) * variance * factor * 1.5
+        ),
+      }));
+    }
+
+    case 'quarter': {
+      // ~13 bars by week
+      return Array.from({ length: 13 }, (_, i) => ({
+        label: `Н${i + 1}`,
+        value: Math.round(
+          baseValue * factor
+          + (seededRandom(seedBase + i + 300) - 0.5) * variance * factor * 1.2
+        ),
+      }));
+    }
+
+    case 'year': {
+      // 12 bars by month
+      const monthNames = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+      return monthNames.map((m, i) => ({
+        label: m,
+        value: Math.round(
+          baseValue * factor
+          * (0.85 + 0.15 * Math.sin((i - 2) * Math.PI / 6))  // seasonal curve
+          + (seededRandom(seedBase + i + 400) - 0.5) * variance * factor
+        ),
+      }));
+    }
   }
+}
+
+/** Hour weight: peaks at 10-11 and 14-15, drops at night */
+function hourWeight(h: number): number {
+  if (h < 6) return 0.2;
+  if (h < 8) return 0.5 + (h - 6) * 0.15;
+  if (h < 12) return 0.9 + 0.1 * Math.sin((h - 8) * Math.PI / 4);
+  if (h < 14) return 0.7;
+  if (h < 18) return 0.85 + 0.1 * Math.sin((h - 14) * Math.PI / 4);
+  if (h < 20) return 0.6;
+  return 0.3;
+}
+
+/** Simple string hash for seed */
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
 }
 
 // ---- Provider ----
@@ -198,7 +248,7 @@ interface PeriodProviderProps {
 }
 
 export function PeriodProvider({ children }: PeriodProviderProps) {
-  const [period, setPeriod] = useState<Period>('today');
+  const [period, setPeriod] = useState<Period>('1d');
   const [callCenter, setCallCenter] = useState<CallCenter>(CALL_CENTERS[0]);
 
   const periodData = useMemo(() => generatePeriodData(period, callCenter.id), [period, callCenter.id]);

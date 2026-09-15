@@ -1,20 +1,24 @@
 'use client';
 
 import { usePeriod, Period, PERIOD_LABELS, PERIOD_ORDER, isRealtimePeriod, isRetrospectivePeriod } from './period-context';
-import { Clock, CalendarDays, Calendar, TrendingUp } from 'lucide-react';
+import { Clock, CalendarDays, Calendar, TrendingUp, Layers, Globe } from 'lucide-react';
 
 const PERIOD_ICONS: Record<Period, React.ElementType> = {
   '1h': Clock,
-  'today': CalendarDays,
+  '1d': CalendarDays,
   '7d': Calendar,
   '30d': TrendingUp,
+  'quarter': Layers,
+  'year': Globe,
 };
 
 const PERIOD_DESCRIPTIONS: Record<Period, string> = {
   '1h': 'Оперативные данные за последний час',
-  'today': 'Текущий день — реальные показатели + дневная сводка',
-  '7d': 'Недельная ретро-статистика и тренды',
-  '30d': 'Месячная аналитика и закономерности',
+  '1d': 'Сутки — разбивка по часам',
+  '7d': 'Неделя — разбивка по дням',
+  '30d': 'Месяц — разбивка по дням',
+  'quarter': 'Квартал — разбивка по неделям',
+  'year': 'Год — разбивка по месяцам',
 };
 
 export function PeriodSelector() {
@@ -22,8 +26,7 @@ export function PeriodSelector() {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2 flex-wrap">
-        {/* Period buttons */}
+      <div className="flex items-center gap-1.5 flex-wrap">
         {PERIOD_ORDER.map(p => {
           const Icon = PERIOD_ICONS[p];
           const active = period === p;
@@ -34,7 +37,7 @@ export function PeriodSelector() {
               key={p}
               onClick={() => setPeriod(p)}
               className={`
-                flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
                 transition-all duration-200 border
                 ${active
                   ? realtime

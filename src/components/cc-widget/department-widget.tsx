@@ -7,8 +7,10 @@ import {
 } from '@/components/ui/chart';
 import {
   Pie, PieChart, Cell,
+  Bar, BarChart, XAxis, YAxis, CartesianGrid,
 } from 'recharts';
 import { PhoneIncoming, Clock } from 'lucide-react';
+import { usePeriod, PERIOD_LABELS } from './period-context';
 
 // ---- Types ----
 interface Queue {
@@ -46,18 +48,19 @@ interface DepartmentWidgetProps {
 
 // ---- Color palette for pie slices ----
 const SLICE_COLORS = [
-  'hsl(220, 70%, 55%)',   // blue
-  'hsl(160, 60%, 45%)',   // emerald
-  'hsl(35, 85%, 55%)',    // amber
-  'hsl(340, 65%, 55%)',   // rose
-  'hsl(270, 50%, 55%)',   // violet
-  'hsl(190, 60%, 45%)',   // cyan
-  'hsl(15, 80%, 55%)',    // orange
-  'hsl(55, 70%, 45%)',    // lime
+  'hsl(220, 70%, 55%)',
+  'hsl(160, 60%, 45%)',
+  'hsl(35, 85%, 55%)',
+  'hsl(340, 65%, 55%)',
+  'hsl(270, 50%, 55%)',
+  'hsl(190, 60%, 45%)',
 ];
 
 // ---- Department Indicators Widget ----
 export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
+  const { periodData, period } = usePeriod();
+  const periodLabel = PERIOD_LABELS[period];
+
   // Prepare pie data — by queue (for queue depth distribution)
   const inboundQueues = queues.filter(q => q.slaSeconds > 0);
   const queueDepthData = inboundQueues
@@ -69,31 +72,25 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
     }))
     .sort((a, b) => b.value - a.value);
 
-  // Prepare pie data — SLA status
-  const slaOk = inboundQueues.filter(q => q.awtCurrent <= q.slaSeconds).length;
-  const slaNear = inboundQueues.filter(q => q.awtCurrent > q.slaSeconds * 0.5 && q.awtCurrent <= q.slaSeconds).length;
-  const slaViolated = inboundQueues.filter(q => q.awtCurrent > q.slaSeconds).length;
+  const totalQueueDepth = queueDepthData.reduce((s, d) => s + d.value, 0);
 
-  const slaData = [
-    { name: 'В норме', value: slaOk, status: 'ok' },
-    { name: 'Приближается', value: slaNear, status: 'near' },
-    { name: 'Нарушено', value: slaViolated, status: 'violated' },
-  ].filter(d => d.value > 0);
-
-  // Chart configs
+  // Chart configs for queue pie
   const queueDepthConfig: ChartConfig = {};
   queueDepthData.forEach((d, i) => {
     queueDepthConfig[d.name] = { label: d.name, color: SLICE_COLORS[i % SLICE_COLORS.length] };
   });
 
-  const slaConfig: ChartConfig = {
-    'В норме': { label: 'В норме', color: 'hsl(160, 60%, 45%)' },
-    'Приближается': { label: 'Приближается', color: 'hsl(35, 85%, 55%)' },
-    'Нарушено': { label: 'Нарушено', color: 'hsl(0, 70%, 55%)' },
-  };
+  // SLA bar chart data from period context
+  const slaData = periodData.slaBarData.map(d => ({
+    name: d.queue,
+    compliance: d.compliance,
+    avgWait: d.avgWait,
+    slaTarget: d.slaTarget,
+  }));
 
-  // Compute total queue depth for center label
-  const totalQueueDepth = queueDepthData.reduce((s, d) => s + d.value, 0);
+  const slaBarConfig: ChartConfig = {
+    compliance: { label: 'SLA %', color: 'hsl(160, 60%, 45%)' },
+  };
 
   return (
     <div className="space-y-4">
@@ -105,7 +102,6 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
         </h2>
       </div>
 
-      {/* Row: Queue pie + SLA donut */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Queue Depth by Queue — Pie Chart */}
         <Card className="hover:shadow-md transition-shadow duration-200">
@@ -162,7 +158,7 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
           </CardContent>
         </Card>
 
-        {/* SLA Status Donut */}
+        {/* SLA Status — Bar Chart */}
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardHeader className="pb-2 px-4 pt-4">
             <div className="flex items-center justify-between">
@@ -171,60 +167,49 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
                 Статус SLA по очередям
               </CardTitle>
               <Badge variant="outline" className="text-xs">
-                {inboundQueues.length} очередей
+                {periodLabel}
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="px-4 pb-4">
-            <div className="flex items-center gap-6">
-              <ChartContainer config={slaConfig} className="h-[150px] w-[150px] shrink-0">
-                <PieChart>
-                  <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                  <Pie
-                    data={slaData}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={38}
-                    outerRadius={65}
-                    strokeWidth={2}
-                    stroke="hsl(var(--background))"
-                  >
-                    {slaData.map((d) => (
-                      <Cell
-                        key={d.name}
-                        fill={
-                          d.status === 'ok' ? 'hsl(160, 60%, 45%)' :
-                          d.status === 'near' ? 'hsl(35, 85%, 55%)' :
-                          'hsl(0, 70%, 55%)'
-                        }
-                      />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ChartContainer>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-emerald-500" />
-                  <div>
-                    <p className="text-sm font-semibold">{slaOk}</p>
-                    <p className="text-[11px] text-muted-foreground">В норме</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-amber-500" />
-                  <div>
-                    <p className="text-sm font-semibold">{slaNear}</p>
-                    <p className="text-[11px] text-muted-foreground">Приближается к лимиту</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-red-500" />
-                  <div>
-                    <p className="text-sm font-semibold">{slaViolated}</p>
-                    <p className="text-[11px] text-muted-foreground">Нарушено</p>
-                  </div>
-                </div>
-              </div>
+            <ChartContainer config={slaBarConfig} className="h-[200px] w-full">
+              <BarChart data={slaData} layout="vertical" margin={{ top: 4, right: 20, bottom: 0, left: 0 }}>
+                <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  type="number"
+                  domain={[0, 100]}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fontSize: 10 }}
+                  tickFormatter={(v) => `${v}%`}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fontSize: 10 }}
+                  width={80}
+                />
+                <Bar
+                  dataKey="compliance"
+                  fill="var(--color-compliance)"
+                  radius={[0, 4, 4, 0]}
+                  maxBarSize={20}
+                />
+              </BarChart>
+            </ChartContainer>
+            {/* Legend: color by compliance level */}
+            <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" /> ≥80%
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="h-2 w-2 rounded-full bg-amber-500" /> 50–79%
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="h-2 w-2 rounded-full bg-red-500" /> &lt;50%
+              </span>
             </div>
           </CardContent>
         </Card>
