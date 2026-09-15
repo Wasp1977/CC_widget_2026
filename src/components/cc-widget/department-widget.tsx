@@ -201,11 +201,18 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
                   maxBarSize={20}
                 />
                 <ReferenceLine
-                  x={80}
-                  stroke="hsl(var(--muted-foreground))"
+                  x={50}
+                  stroke="hsl(0, 0%, 60%)"
                   strokeDasharray="4 3"
                   strokeWidth={1}
-                  label={{ value: '80%', position: 'top', fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                  label={{ value: '50%', position: 'top', fontSize: 9, fill: 'hsl(0, 0%, 50%)' }}
+                />
+                <ReferenceLine
+                  x={80}
+                  stroke="hsl(0, 0%, 60%)"
+                  strokeDasharray="4 3"
+                  strokeWidth={1}
+                  label={{ value: '80%', position: 'top', fontSize: 9, fill: 'hsl(0, 0%, 50%)' }}
                 />
               </BarChart>
             </ChartContainer>
