@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/chart';
 import {
   Pie, PieChart, Cell,
-  Bar, BarChart, XAxis, YAxis, CartesianGrid,
+  Bar, BarChart, XAxis, YAxis, CartesianGrid, ReferenceLine,
 } from 'recharts';
 import { PhoneIncoming, Clock } from 'lucide-react';
 import { usePeriod, PERIOD_LABELS } from './period-context';
@@ -199,6 +199,13 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
                   fill="hsl(270, 50%, 55%)"
                   radius={[0, 4, 4, 0]}
                   maxBarSize={20}
+                />
+                <ReferenceLine
+                  x={80}
+                  stroke="hsl(var(--muted-foreground))"
+                  strokeDasharray="4 3"
+                  strokeWidth={1}
+                  label={{ value: '80%', position: 'top', fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
                 />
               </BarChart>
             </ChartContainer>
