@@ -167,7 +167,7 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Clock className="h-4 w-4 text-amber-500" />
-                SLA (Service Level Agreement) по очередям
+                SLA (Соглашение об уровне обслуживания) по очередям
               </CardTitle>
               <Badge variant="outline" className="text-xs">
                 {periodLabel}
@@ -196,33 +196,17 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
                 />
                 <Bar
                   dataKey="compliance"
+                  fill="hsl(270, 50%, 55%)"
                   radius={[0, 4, 4, 0]}
                   maxBarSize={20}
-                >
-                  {slaData.map((d, i) => (
-                    <Cell
-                      key={i}
-                      fill={
-                        d.compliance >= 80 ? 'hsl(160, 60%, 45%)' :
-                        d.compliance >= 50 ? 'hsl(35, 85%, 55%)' :
-                        'hsl(0, 72%, 55%)'
-                      }
-                    />
-                  ))}
-                </Bar>
+                />
               </BarChart>
             </ChartContainer>
-            {/* Legend: color by compliance level */}
-            <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" /> ≥80%
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-amber-500" /> 50–79%
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-red-500" /> &lt;50%
-              </span>
+            {/* Legend: compliance levels */}
+            <div className="flex items-center gap-4 mt-2 text-[10px] text-muted-foreground">
+              <span>≥80% норма</span>
+              <span>50–79% обратите внимание</span>
+              <span>&lt;50% неудовлетворительно</span>
             </div>
           </CardContent>
         </Card>
