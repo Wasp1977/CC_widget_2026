@@ -61,15 +61,13 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
   const { periodData, period } = usePeriod();
   const periodLabel = PERIOD_LABELS[period];
 
-  // Prepare pie data — by queue (for queue depth distribution)
-  const inboundQueues = queues.filter(q => q.slaSeconds > 0);
-  const queueDepthData = inboundQueues
-    .filter(q => q.queueDepth > 0)
-    .map(q => ({
-      name: q.name,
-      value: q.queueDepth,
-      group: q.group,
+  // Prepare pie data — from period context (period-dependent)
+  const queueDepthData = periodData.queueDepthDistribution
+    .map(d => ({
+      name: d.name,
+      value: d.depth,
     }))
+    .filter(d => d.value > 0)
     .sort((a, b) => b.value - a.value);
 
   const totalQueueDepth = queueDepthData.reduce((s, d) => s + d.value, 0);
@@ -111,9 +109,14 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
                 <PhoneIncoming className="h-4 w-4 text-blue-500" />
                 Клиенты в очереди по отделам
               </CardTitle>
-              <Badge variant="outline" className="text-xs">
-                {totalQueueDepth} всего
-              </Badge>
+              <div className="flex items-center gap-1.5">
+                <Badge variant="outline" className="text-xs">
+                  {periodLabel}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  {totalQueueDepth} всего
+                </Badge>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="px-4 pb-4">
@@ -164,7 +167,7 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Clock className="h-4 w-4 text-amber-500" />
-                Статус SLA по очередям
+                SLA (Service Level Agreement) по очередям
               </CardTitle>
               <Badge variant="outline" className="text-xs">
                 {periodLabel}
@@ -193,10 +196,20 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
                 />
                 <Bar
                   dataKey="compliance"
-                  fill="var(--color-compliance)"
                   radius={[0, 4, 4, 0]}
                   maxBarSize={20}
-                />
+                >
+                  {slaData.map((d, i) => (
+                    <Cell
+                      key={i}
+                      fill={
+                        d.compliance >= 80 ? 'hsl(160, 60%, 45%)' :
+                        d.compliance >= 50 ? 'hsl(35, 85%, 55%)' :
+                        'hsl(0, 72%, 55%)'
+                      }
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ChartContainer>
             {/* Legend: color by compliance level */}

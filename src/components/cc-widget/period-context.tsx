@@ -114,32 +114,91 @@ export function generatePeriodData(period: Period, ccId: string): PeriodData {
   const operatorsOnlineBars = generateBars(period, f, 9, 3, 'ops');
   const callsInQueueBars = generateBars(period, f, 23, 10, 'queue');
 
-  // SLA per-queue bar data
-  const slaBarData: SlaBarData[] = [
-    { queue: 'Продажи', slaTarget: 30, avgWait: 28, compliance: 85 },
-    { queue: 'Поддержка', slaTarget: 60, avgWait: 72, compliance: 58 },
-    { queue: 'Тех. отдел', slaTarget: 90, avgWait: 15, compliance: 100 },
-    { queue: 'Биллинг', slaTarget: 30, avgWait: 22, compliance: 92 },
-    { queue: 'VIP-клиенты', slaTarget: 20, avgWait: 4, compliance: 98 },
-    { queue: 'Мультискилл', slaTarget: 60, avgWait: 95, compliance: 42 },
-  ].map(d => ({
-    ...d,
-    avgWait: Math.round(d.avgWait * f + (1 - f) * 5),
-    compliance: Math.round(d.compliance * (0.5 + 0.5 * f)),
-  }));
+  // SLA per-queue bar data — period-dependent
+  const slaBarData = generateSlaData(period, f);
 
-  const queueDepthDistribution = [
-    { name: 'Мультискилл', depth: Math.round(12 * f) },
-    { name: 'Поддержка', depth: Math.round(7 * f) },
-    { name: 'Продажи', depth: Math.round(3 * f) },
-    { name: 'Биллинг', depth: Math.round(1 * f) },
-  ];
+  // Queue depth distribution — period-dependent
+  const queueDepthDistribution = generateQueueDepth(period, f);
 
   return {
     period, callCenterId: ccId, live,
     operatorsOnlineBars, callsInQueueBars, slaBarData,
     queueDepthDistribution,
   };
+}
+
+// ---- SLA data generator by period ----
+function generateSlaData(period: Period, f: number): SlaBarData[] {
+  // Base SLA profiles per queue — compliance %, avgWait seconds, slaTarget seconds
+  const baseProfiles = [
+    { queue: 'Продажи',     slaTarget: 30, baseCompliance: 85, baseAvgWait: 28 },
+    { queue: 'Поддержка',   slaTarget: 60, baseCompliance: 58, baseAvgWait: 72 },
+    { queue: 'Тех. отдел',  slaTarget: 90, baseCompliance: 100, baseAvgWait: 15 },
+    { queue: 'Биллинг',     slaTarget: 30, baseCompliance: 92, baseAvgWait: 22 },
+    { queue: 'VIP-клиенты', slaTarget: 20, baseCompliance: 98, baseAvgWait: 4 },
+    { queue: 'Мультискилл', slaTarget: 60, baseCompliance: 42, baseAvgWait: 95 },
+  ];
+
+  // Period modifiers: shorter periods are more volatile, longer are smoother
+  const periodMod: Record<Period, { complianceScale: number; complianceNoise: number; waitScale: number; waitNoise: number }> = {
+    '1h':      { complianceScale: 1.0,  complianceNoise: 12, waitScale: 1.0,  waitNoise: 15 },
+    '1d':      { complianceScale: 0.95, complianceNoise: 8,  waitScale: 0.9,  waitNoise: 10 },
+    '7d':      { complianceScale: 0.9,  complianceNoise: 5,  waitScale: 0.8,  waitNoise: 7 },
+    '30d':     { complianceScale: 0.85, complianceNoise: 3,  waitScale: 0.7,  waitNoise: 5 },
+    'quarter': { complianceScale: 0.82, complianceNoise: 2,  waitScale: 0.65, waitNoise: 3 },
+    'year':    { complianceScale: 0.78, complianceNoise: 1,  waitScale: 0.6,  waitNoise: 2 },
+  };
+
+  const mod = periodMod[period];
+  const seedBase = hashStr('sla');
+
+  return baseProfiles.map((p, i) => {
+    const noise = seededRandom(seedBase + i * 17 + hashStr(period)) - 0.5;
+    const compliance = Math.min(100, Math.max(0,
+      Math.round(p.baseCompliance * mod.complianceScale * (0.5 + 0.5 * f) + noise * mod.complianceNoise)
+    ));
+    const avgWait = Math.max(0,
+      Math.round(p.baseAvgWait * mod.waitScale * f + noise * mod.waitNoise)
+    );
+    return {
+      queue: p.queue,
+      slaTarget: p.slaTarget,
+      avgWait,
+      compliance,
+    };
+  });
+}
+
+// ---- Queue depth distribution generator by period ----
+function generateQueueDepth(period: Period, f: number): { name: string; depth: number }[] {
+  // Base depths per department
+  const baseDepths = [
+    { name: 'Мультискилл', base: 12 },
+    { name: 'Поддержка',   base: 7 },
+    { name: 'Продажи',     base: 3 },
+    { name: 'Биллинг',     base: 1 },
+    { name: 'VIP-клиенты', base: 0.5 },
+    { name: 'Тех. отдел',  base: 0.2 },
+  ];
+
+  // Period multiplier: shorter periods show current spikes, longer show averages
+  const periodFactor: Record<Period, number> = {
+    '1h':      1.0,   // live snapshot
+    '1d':      0.85,  // daily average slightly lower (off-peak hours bring average down)
+    '7d':      0.75,  // weekly average (weekends reduce)
+    '30d':     0.7,   // monthly average
+    'quarter': 0.65,  // quarterly average
+    'year':    0.6,   // yearly average (most smoothed)
+  };
+
+  const pf = periodFactor[period];
+  const seedBase = hashStr('qdepth');
+
+  return baseDepths.map((d, i) => {
+    const noise = seededRandom(seedBase + i * 13 + hashStr(period)) - 0.5;
+    const depth = Math.max(0, Math.round(d.base * f * pf + noise * f * 1.5));
+    return { name: d.name, depth };
+  }).filter(d => d.depth > 0);  // hide departments with 0 depth
 }
 
 // ---- Bar data generator by period ----
