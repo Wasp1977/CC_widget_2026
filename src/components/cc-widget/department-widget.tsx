@@ -167,7 +167,7 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Clock className="h-4 w-4 text-amber-500" />
-                SLA (Соглашение об уровне обслуживания) по очередям
+                SLA — доля звонков с ответом в срок, по очередям
               </CardTitle>
               <Badge variant="outline" className="text-xs">
                 {periodLabel}
