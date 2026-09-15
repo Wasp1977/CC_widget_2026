@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { RATINGS, type CJStep, type CJRating, type StepsState } from './types';
+import type { Feasibility, CJStep, StepsState } from './types';
 import {
   ChevronDown,
   ChevronUp,
@@ -14,6 +14,9 @@ import {
   AlertCircle,
   Lock,
   ArrowRight,
+  CheckCircle2,
+  XCircle,
+  MessageSquare,
 } from 'lucide-react';
 
 // ─── Props ───
@@ -40,7 +43,7 @@ function buildReport(
   scenarioName: string,
 ): string {
   const lines: string[] = [
-    '═══ Задания для прототипа: Отчёт ═══',
+    '═══ Описание виджетов: Отчёт ═══',
     `Дата: ${formatDate()}`,
     `Сценарий: ${scenarioName}`,
   ];
@@ -51,15 +54,20 @@ function buildReport(
     lines.push(`Почта: ${participantEmail.trim()}`);
   }
   lines.push('');
-  lines.push('── Задания и оценки ──');
+  lines.push('── Виджеты и оценка реализуемости ──');
   lines.push('');
   steps.forEach((s, i) => {
     const d = state[s.id];
-    lines.push(`Задание ${i + 1}: ${s.label}`);
+    lines.push(`Виджет ${i + 1}: ${s.label}`);
+    if (s.tag) lines.push(`  Тип: ${s.tag}`);
+    if (s.periods?.length) lines.push(`  Периоды: ${s.periods.join(', ')}`);
     lines.push(`  Описание: ${s.description}`);
-    lines.push(`  Оценка: ${d?.rating ? `${d.rating.emoji} ${d.rating.label}` : 'не оценено'}`);
+    lines.push(`  Оценка: ${d?.feasibility === 'can-do' ? 'Сможем сделать' : d?.feasibility === 'cannot-do' ? 'Невозможно сделать' : 'не оценено'}`);
     if (d?.comment?.trim()) {
       lines.push(`  Комментарий: ${d.comment.trim()}`);
+    }
+    if (s.devComment) {
+      lines.push(`  Комментарий разработки: ${s.devComment}`);
     }
     lines.push('');
   });
@@ -78,7 +86,12 @@ export default function CJTracker({
   const [participantEmail, setParticipantEmail] = useState('');
   const [state, setState] = useState<StepsState>(() => {
     const init: StepsState = {};
-    steps.forEach((s) => { init[s.id] = { rating: null, comment: '' }; });
+    steps.forEach((s) => {
+      init[s.id] = {
+        feasibility: s.defaultFeasibility ?? null,
+        comment: '',
+      };
+    });
     return init;
   });
   const [submitting, setSubmitting] = useState(false);
@@ -90,17 +103,19 @@ export default function CJTracker({
   useEffect(() => { onChange?.(state); }, [state, onChange]);
 
   // ── Computed ──
-  const allRated = steps.every((s) => state[s.id]?.rating !== null);
-  const ratedCount = steps.filter((s) => state[s.id]?.rating !== null).length;
+  const allRated = steps.every((s) => state[s.id]?.feasibility !== null);
+  const ratedCount = steps.filter((s) => state[s.id]?.feasibility !== null).length;
+  const canDoCount = steps.filter((s) => state[s.id]?.feasibility === 'can-do').length;
+  const cannotDoCount = steps.filter((s) => state[s.id]?.feasibility === 'cannot-do').length;
   const isLastStep = activeStepIndex === steps.length - 1;
   const currentStep = steps[activeStepIndex];
   const currentData = currentStep ? state[currentStep.id] : null;
 
   // ── Actions ──
-  const selectRating = useCallback((stepId: string, rating: CJRating | null) => {
+  const selectFeasibility = useCallback((stepId: string, f: Feasibility | null) => {
     setState((prev) => ({
       ...prev,
-      [stepId]: { ...prev[stepId], rating: prev[stepId]?.rating?.value === rating?.value ? null : rating },
+      [stepId]: { ...prev[stepId], feasibility: prev[stepId]?.feasibility === f ? null : f },
     }));
   }, []);
 
@@ -111,20 +126,18 @@ export default function CJTracker({
   // Manual advance via "Done" button
   const goToNext = useCallback(() => {
     if (!currentStep) return;
-    if (state[currentStep.id]?.rating === null) return;
+    if (state[currentStep.id]?.feasibility === null) return;
     if (isLastStep) return;
     setActiveStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
   }, [currentStep, state, isLastStep]);
 
-  // Click on completed step — allow reviewing (set active index back)
+  // Click on completed step — allow reviewing
   const handleStepClick = useCallback((idx: number) => {
     if (submitted) return;
     const step = steps[idx];
-    // Only allow clicking on completed steps or the active one
-    if (state[step.id]?.rating !== null) {
+    if (state[step.id]?.feasibility !== null) {
       setActiveStepIndex(idx);
     }
-    // Locked steps do nothing
   }, [steps, state, submitted]);
 
   const handleSubmit = useCallback(async () => {
@@ -162,7 +175,7 @@ export default function CJTracker({
   // ── Step classification ──
   const getStepStatus = (idx: number): 'completed' | 'active' | 'locked' => {
     if (idx === activeStepIndex) return 'active';
-    if (state[steps[idx].id]?.rating !== null) return 'completed';
+    if (state[steps[idx].id]?.feasibility !== null) return 'completed';
     return 'locked';
   };
 
@@ -177,7 +190,7 @@ export default function CJTracker({
       <div className="flex items-center justify-between px-3 py-2 border-b border-stone-200 bg-stone-100 shrink-0">
         <div className="flex items-center gap-1.5 text-xs text-stone-500">
           <ClipboardList className="h-3.5 w-3.5" />
-          <span className="font-semibold text-stone-600">Задания для прототипа</span>
+          <span className="font-semibold text-stone-600">Описание виджетов</span>
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -189,10 +202,31 @@ export default function CJTracker({
           </button>
         </div>
       </div>
-      <div className="px-3 pb-2 border-b border-stone-200 bg-stone-100/50">
-        <p className="text-[11px] text-stone-500 leading-snug">
-          Выполните задания по порядку: оцените эмоцию после каждого шага и нажмите «Готово».
-        </p>
+
+      {/* ── Feasibility progress bar ── */}
+      <div className="px-3 py-2 border-b border-stone-200 bg-stone-100/50">
+        <div className="flex items-center gap-2 text-[10px]">
+          <div className="flex-1 h-1.5 rounded-full bg-stone-200 overflow-hidden flex">
+            {canDoCount > 0 && (
+              <div
+                className="h-full bg-emerald-400 transition-all duration-500"
+                style={{ width: `${(canDoCount / steps.length) * 100}%` }}
+              />
+            )}
+            {cannotDoCount > 0 && (
+              <div
+                className="h-full bg-red-400 transition-all duration-500"
+                style={{ width: `${(cannotDoCount / steps.length) * 100}%` }}
+              />
+            )}
+          </div>
+          <span className="flex items-center gap-1 text-emerald-600 font-medium">
+            <CheckCircle2 className="h-3 w-3" />{canDoCount}
+          </span>
+          <span className="flex items-center gap-1 text-red-500 font-medium">
+            <XCircle className="h-3 w-3" />{cannotDoCount}
+          </span>
+        </div>
       </div>
 
       {/* ── Disclaimer ── */}
@@ -256,6 +290,10 @@ export default function CJTracker({
                     ? 'border-stone-200/60 bg-stone-100/50 opacity-50'
                     : isActive
                     ? 'border-amber-300 bg-white ring-1 ring-amber-200'
+                    : data?.feasibility === 'can-do'
+                    ? 'border-emerald-200 bg-emerald-50/30'
+                    : data?.feasibility === 'cannot-do'
+                    ? 'border-red-200 bg-red-50/30'
                     : 'border-stone-200 bg-white hover:bg-stone-50'
                 }`}
               >
@@ -270,14 +308,16 @@ export default function CJTracker({
                   {/* Number badge */}
                   <span
                     className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border transition-all ${
-                      isCompleted
+                      data?.feasibility === 'can-do'
                         ? 'bg-emerald-100 border-emerald-400 text-emerald-700'
+                        : data?.feasibility === 'cannot-do'
+                        ? 'bg-red-100 border-red-400 text-red-700'
                         : isActive
                         ? 'bg-amber-100 border-amber-400 text-amber-700'
                         : 'bg-stone-100 border-stone-300 text-stone-400'
                     }`}
                   >
-                    {isCompleted ? '\u2713' : isLocked ? <Lock className="h-2.5 w-2.5" /> : idx + 1}
+                    {isCompleted ? (data?.feasibility === 'can-do' ? '✓' : '✗') : isLocked ? <Lock className="h-2.5 w-2.5" /> : idx + 1}
                   </span>
 
                   <span className={`flex-1 truncate ${
@@ -288,8 +328,11 @@ export default function CJTracker({
                     {step.label}
                   </span>
 
-                  {isCompleted && data?.rating && (
-                    <span className="shrink-0 text-sm" title={data.rating.label}>{data.rating.emoji}</span>
+                  {/* Tag badge */}
+                  {step.tag && (
+                    <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-stone-200/70 text-stone-500 font-medium">
+                      {step.tag}
+                    </span>
                   )}
 
                   {isActive && (
@@ -297,58 +340,83 @@ export default function CJTracker({
                   )}
                 </button>
 
-                {/* Rating panel — only for active step */}
+                {/* Detail panel — only for active step */}
                 {isActive && !submitted && (
                   <div className="px-2.5 pb-2.5 pt-1 space-y-2 border-t border-stone-100">
                     {/* Step number label */}
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold text-amber-600">ЗАДАНИЕ {idx + 1} ИЗ {steps.length}</span>
+                      <span className="text-[10px] font-bold text-amber-600">ВИДЖЕТ {idx + 1} ИЗ {steps.length}</span>
                     </div>
 
-                    {/* Task description */}
+                    {/* Description */}
                     <p className="text-[11px] text-stone-600 leading-relaxed">
                       {step.description}
                     </p>
 
-                    {/* Emoji rating buttons */}
-                    <div className="grid grid-cols-4 gap-1">
-                      {RATINGS.map((r) => {
-                        const selected = data?.rating?.value === r.value;
-                        return (
-                          <button
-                            key={r.value}
-                            onClick={() => selectRating(step.id, r)}
-                            title={r.label}
-                            className={`flex flex-col items-center gap-0.5 py-1.5 rounded-md border text-sm transition-all ${
-                              selected
-                                ? 'border-amber-400 bg-amber-50 shadow-sm scale-105'
-                                : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50'
-                            }`}
-                          >
-                            <span className="text-base leading-none">{r.emoji}</span>
-                            <span className="text-[9px] leading-tight text-stone-500 truncate w-full text-center">
-                              {r.label}
-                            </span>
-                          </button>
-                        );
-                      })}
+                    {/* Periods badge */}
+                    {step.periods && step.periods.length > 0 && (
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-[10px] text-stone-400">Периоды:</span>
+                        {step.periods.map(p => (
+                          <span key={p} className="text-[9px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 font-medium border border-blue-200/50">
+                            {p}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Dev team comment (read-only) */}
+                    {step.devComment && (
+                      <div className="p-2 rounded-md bg-violet-50 border border-violet-200/50">
+                        <p className="text-[10px] text-violet-500 font-semibold mb-0.5">Комментарий разработки:</p>
+                        <p className="text-[11px] text-violet-700 leading-relaxed">{step.devComment}</p>
+                      </div>
+                    )}
+
+                    {/* Feasibility buttons */}
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => selectFeasibility(step.id, 'can-do')}
+                        className={`flex items-center justify-center gap-1.5 py-2 rounded-md border text-xs font-medium transition-all ${
+                          data?.feasibility === 'can-do'
+                            ? 'border-emerald-400 bg-emerald-100 text-emerald-700 shadow-sm scale-[1.02]'
+                            : 'border-stone-200 hover:border-emerald-300 hover:bg-emerald-50 text-stone-500'
+                        }`}
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Сможем сделать
+                      </button>
+                      <button
+                        onClick={() => selectFeasibility(step.id, 'cannot-do')}
+                        className={`flex items-center justify-center gap-1.5 py-2 rounded-md border text-xs font-medium transition-all ${
+                          data?.feasibility === 'cannot-do'
+                            ? 'border-red-400 bg-red-100 text-red-700 shadow-sm scale-[1.02]'
+                            : 'border-stone-200 hover:border-red-300 hover:bg-red-50 text-stone-500'
+                        }`}
+                      >
+                        <XCircle className="h-3.5 w-3.5" />
+                        Невозможно сделать
+                      </button>
                     </div>
 
                     {/* Comment */}
-                    <textarea
-                      value={data?.comment || ''}
-                      onChange={(e) => setComment(step.id, e.target.value)}
-                      placeholder="Что было неочевидно? А так же, делитесь вашими идеями!"
-                      className="w-full text-xs p-2 rounded-md border border-stone-200 bg-stone-50 text-stone-700 placeholder:text-stone-400 resize-none focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400"
-                      rows={3}
-                    />
+                    <div className="relative">
+                      <MessageSquare className="absolute left-2 top-2 h-3 w-3 text-stone-400" />
+                      <textarea
+                        value={data?.comment || ''}
+                        onChange={(e) => setComment(step.id, e.target.value)}
+                        placeholder="Ваш комментарий или вопрос..."
+                        className="w-full text-xs pl-7 pr-2 p-2 rounded-md border border-stone-200 bg-stone-50 text-stone-700 placeholder:text-stone-400 resize-none focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400"
+                        rows={2}
+                      />
+                    </div>
 
                     {/* Done button */}
                     <button
                       onClick={goToNext}
-                      disabled={state[step.id]?.rating === null || isLastStep}
+                      disabled={state[step.id]?.feasibility === null || isLastStep}
                       className={`w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-md font-medium transition-all ${
-                        state[step.id]?.rating !== null && !isLastStep
+                        state[step.id]?.feasibility !== null && !isLastStep
                           ? 'bg-stone-700 text-white hover:bg-stone-800 active:scale-[0.98]'
                           : 'bg-stone-200 text-stone-400 cursor-not-allowed'
                       }`}
@@ -363,15 +431,20 @@ export default function CJTracker({
                   </div>
                 )}
 
-                {/* Completed step — show comment preview on click */}
+                {/* Completed step — show summary on click */}
                 {isCompleted && activeStepIndex === idx && (
-                  <div className="px-2.5 pb-2 pt-1 border-t border-stone-100">
+                  <div className="px-2.5 pb-2 pt-1 border-t border-stone-100 space-y-1.5">
                     <p className="text-[10px] text-stone-500 leading-relaxed">
                       {step.description}
                     </p>
+                    {step.devComment && (
+                      <p className="text-[10px] text-violet-600 italic">
+                        Разработка: {step.devComment}
+                      </p>
+                    )}
                     {data?.comment?.trim() && (
-                      <p className="text-[11px] text-stone-600 mt-1.5 italic">
-                        “{data.comment.trim()}”
+                      <p className="text-[11px] text-stone-600 italic">
+                        &ldquo;{data.comment.trim()}&rdquo;
                       </p>
                     )}
                   </div>
@@ -417,7 +490,7 @@ export default function CJTracker({
               <p className="text-[10px] text-stone-400 text-center">
                 {allRated
                   ? ''
-                  : `Оцените все задания, чтобы отправить отчёт`}
+                  : `Оцените все виджеты, чтобы отправить отчёт`}
               </p>
             )}
           </div>

@@ -1,21 +1,32 @@
+export type Feasibility = 'can-do' | 'cannot-do';
+
 export interface CJStep {
   id: string;
   label: string;
   description: string;
+  /** Widget type tag: Навигация / Оперативный / Агрегированный / Круговая / Карточки */
+  tag?: string;
+  /** Which periods this widget is available for */
+  periods?: string[];
+  /** Pre-filled feasibility from dev team assessment */
+  defaultFeasibility?: Feasibility;
+  /** Dev team comment explaining why */
+  devComment?: string;
 }
 
+export interface StepData {
+  feasibility: Feasibility | null;
+  comment: string;
+}
+
+export type StepsState = Record<string, StepData>;
+
+// Kept for backward compat in report builder
 export interface CJRating {
   emoji: string;
   label: string;
   value: number;
 }
-
-export interface StepData {
-  rating: CJRating | null;
-  comment: string;
-}
-
-export type StepsState = Record<string, StepData>;
 
 export const RATINGS: CJRating[] = [
   { emoji: '😞', label: 'Разочарование', value: 1 },
