@@ -212,12 +212,17 @@ function generateBars(
   const seedBase = hashStr(seedPrefix);
 
   switch (period) {
-    case '1h':
-      // Single large value — no bars
-      return [{
-        label: 'Сейчас',
-        value: Math.round(baseValue * factor),
-      }];
+    case '1h': {
+      // 12 bars by 5-minute intervals
+      return Array.from({ length: 12 }, (_, i) => ({
+        label: `:${(i * 5).toString().padStart(2, '0')}`,
+        value: Math.round(
+          baseValue * factor
+          * (0.6 + 0.4 * hourWeight(7 + i * 0.5))  // approximate hour position
+          + (seededRandom(seedBase + i + 500) - 0.5) * variance * factor
+        ),
+      }));
+    }
 
     case '1d': {
       // 24 bars by hour

@@ -87,7 +87,7 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
   }));
 
   const slaBarConfig: ChartConfig = {
-    compliance: { label: 'SLA %', color: 'hsl(160, 60%, 45%)' },
+    compliance: { label: 'SLA %', color: 'hsl(270, 50%, 55%)' },
   };
 
   return (
@@ -100,8 +100,8 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {/* Queue Depth by Queue — Pie Chart */}
+      <div className="space-y-3">
+        {/* Queue Depth by Queue — Pie Chart — full width */}
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardHeader className="pb-2 px-4 pt-4">
             <div className="flex items-center justify-between">
@@ -121,7 +121,7 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
           </CardHeader>
           <CardContent className="px-4 pb-4">
             {queueDepthData.length > 0 ? (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-6">
                 <ChartContainer config={queueDepthConfig} className="h-[180px] w-[180px] shrink-0">
                   <PieChart>
                     <ChartTooltip content={<ChartTooltipContent hideLabel />} />
@@ -161,7 +161,7 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
           </CardContent>
         </Card>
 
-        {/* SLA Status — Bar Chart */}
+        {/* SLA Status — Vertical Bar Chart — full width */}
         <Card className="hover:shadow-md transition-shadow duration-200">
           <CardHeader className="pb-2 px-4 pt-4">
             <div className="flex items-center justify-between">
@@ -175,45 +175,45 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
             </div>
           </CardHeader>
           <CardContent className="px-4 pb-4">
-            <ChartContainer config={slaBarConfig} className="h-[200px] w-full">
-              <BarChart data={slaData} layout="vertical" margin={{ top: 4, right: 20, bottom: 0, left: 0 }}>
-                <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <ChartContainer config={slaBarConfig} className="h-[220px] w-full">
+              <BarChart data={slaData} margin={{ top: 4, right: 10, bottom: 0, left: 0 }}>
+                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
+                  dataKey="name"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fontSize: 10 }}
+                />
+                <YAxis
                   type="number"
                   domain={[0, 100]}
                   tickLine={false}
                   axisLine={false}
                   tick={{ fontSize: 10 }}
                   tickFormatter={(v) => `${v}%`}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 10 }}
-                  width={80}
+                  width={40}
                 />
                 <Bar
                   dataKey="compliance"
                   fill="hsl(270, 50%, 55%)"
-                  radius={[0, 4, 4, 0]}
-                  maxBarSize={20}
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={50}
                 />
                 <ReferenceLine
-                  x={50}
+                  y={50}
                   stroke="hsl(0, 0%, 60%)"
                   strokeDasharray="4 3"
                   strokeWidth={1}
-                  label={{ value: '50%', position: 'top', fontSize: 9, fill: 'hsl(0, 0%, 50%)' }}
+                  label={{ value: '50%', position: 'right', fontSize: 9, fill: 'hsl(0, 0%, 50%)' }}
                 />
                 <ReferenceLine
-                  x={80}
+                  y={80}
                   stroke="hsl(0, 0%, 60%)"
                   strokeDasharray="4 3"
                   strokeWidth={1}
-                  label={{ value: '80%', position: 'top', fontSize: 9, fill: 'hsl(0, 0%, 50%)' }}
+                  label={{ value: '80%', position: 'right', fontSize: 9, fill: 'hsl(0, 0%, 50%)' }}
                 />
+                <ChartTooltip content={<ChartTooltipContent />} />
               </BarChart>
             </ChartContainer>
             {/* Legend: compliance levels */}
