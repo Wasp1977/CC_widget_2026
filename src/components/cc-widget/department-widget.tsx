@@ -43,6 +43,7 @@ interface Agent {
 interface DepartmentWidgetProps {
   queues: Queue[];
   agents: Agent[];
+  employeeQueue?: string;  // when set, filter data to this queue only
 }
 
 // ---- Color palette for pie slices ----
@@ -56,12 +57,14 @@ const SLICE_COLORS = [
 ];
 
 // ---- Department Indicators Widget ----
-export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
+export function DepartmentWidget({ queues, agents, employeeQueue }: DepartmentWidgetProps) {
   const { periodData, period } = usePeriod();
   const periodLabel = PERIOD_LABELS[period];
 
   // Prepare pie data — from period context (period-dependent)
+  // Filter by employeeQueue if set
   const queueDepthData = periodData.queueDepthDistribution
+    .filter(d => !employeeQueue || d.name === employeeQueue)
     .map(d => ({
       name: d.name,
       value: d.depth,
@@ -77,13 +80,15 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
     queueDepthConfig[d.name] = { label: d.name, color: SLICE_COLORS[i % SLICE_COLORS.length] };
   });
 
-  // SLA bar chart data from period context
-  const slaData = periodData.slaBarData.map(d => ({
-    name: d.queue,
-    compliance: d.compliance,
-    avgWait: d.avgWait,
-    slaTarget: d.slaTarget,
-  }));
+  // SLA bar chart data from period context — filter by employeeQueue if set
+  const slaData = periodData.slaBarData
+    .filter(d => !employeeQueue || d.queue === employeeQueue)
+    .map(d => ({
+      name: d.queue,
+      compliance: d.compliance,
+      avgWait: d.avgWait,
+      slaTarget: d.slaTarget,
+    }));
 
   const slaBarConfig: ChartConfig = {
     compliance: { label: 'SLA %', color: 'hsl(270, 50%, 55%)' },

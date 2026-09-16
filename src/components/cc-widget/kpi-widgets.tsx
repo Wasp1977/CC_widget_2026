@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Headphones, PhoneIncoming } from 'lucide-react';
-import { usePeriod, PERIOD_LABELS, isRealtimePeriod } from './period-context';
+import { usePeriod, PERIOD_LABELS } from './period-context';
 import type { BarDataPoint } from './period-context';
 
 // ---- Types ----
@@ -23,6 +23,7 @@ interface Agent {
 interface KpiWidgetProps {
   queues: Queue[];
   agents: Agent[];
+  employeeQueue?: string;  // when set, data is scoped to this queue
 }
 
 // ---- Shared chart config ----
@@ -43,7 +44,6 @@ function BarChartCard({
   color,
   bgColor,
   periodLabel,
-  isLive,
 }: {
   label: string;
   data: BarDataPoint[];
@@ -52,28 +52,19 @@ function BarChartCard({
   color: string;
   bgColor: string;
   periodLabel: string;
-  isLive?: boolean;
 }) {
-  const isDense = data.length > 15; // compact ticks for many bars
+  const isDense = data.length > 15;
 
   return (
     <Card className="group hover:shadow-md transition-shadow duration-200">
       <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className={`p-2.5 rounded-xl ${bgColor}`}>
-              <Icon className={`h-5 w-5 ${color}`} />
-            </div>
-            <p className="text-xs text-muted-foreground font-medium">
-              {label} <span className="text-muted-foreground/50">· {periodLabel}</span>
-            </p>
+        <div className="flex items-center gap-2 mb-3">
+          <div className={`p-2.5 rounded-xl ${bgColor}`}>
+            <Icon className={`h-5 w-5 ${color}`} />
           </div>
-          {isLive && (
-            <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded-md">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live
-            </span>
-          )}
+          <p className="text-xs text-muted-foreground font-medium">
+            {label} <span className="text-muted-foreground/50">· {periodLabel}</span>
+          </p>
         </div>
         <ChartContainer config={chartConfig} className="h-[140px] w-full">
           <BarChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
@@ -105,10 +96,19 @@ function BarChartCard({
 }
 
 // ---- Main KPI Widgets Component ----
-export function KpiWidgets({ queues, agents }: KpiWidgetProps) {
+export function KpiWidgets({ queues, agents, employeeQueue }: KpiWidgetProps) {
   const { period, periodData } = usePeriod();
   const periodLabel = PERIOD_LABELS[period];
-  const isLive = isRealtimePeriod(period);
+
+  // For employee: scale bar data to represent a single queue's share
+  // In production this would come from the API filtered by queue
+  const opsData = employeeQueue
+    ? periodData.operatorsOnlineBars.map(d => ({ ...d, value: Math.round(d.value * 0.3) }))
+    : periodData.operatorsOnlineBars;
+
+  const queueData = employeeQueue
+    ? periodData.callsInQueueBars.map(d => ({ ...d, value: Math.round(d.value * 0.2) }))
+    : periodData.callsInQueueBars;
 
   return (
     <div className="space-y-3">
@@ -118,35 +118,27 @@ export function KpiWidgets({ queues, agents }: KpiWidgetProps) {
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Оперативные
         </h2>
-        {isLive && (
-          <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Live
-          </span>
-        )}
       </div>
 
       {/* Metric cards — full width */}
       <div className="space-y-3">
         <BarChartCard
           label="Операторов на линии"
-          data={periodData.operatorsOnlineBars}
+          data={opsData}
           chartConfig={opsChartConfig}
           icon={Headphones}
           color="text-emerald-600 dark:text-emerald-400"
           bgColor="bg-emerald-100 dark:bg-emerald-950/40"
           periodLabel={periodLabel}
-          isLive={isLive}
         />
         <BarChartCard
           label="Звонков в очереди"
-          data={periodData.callsInQueueBars}
+          data={queueData}
           chartConfig={queueChartConfig}
           icon={PhoneIncoming}
           color="text-blue-600 dark:text-blue-400"
           bgColor="bg-blue-100 dark:bg-blue-950/40"
           periodLabel={periodLabel}
-          isLive={isLive}
         />
       </div>
     </div>

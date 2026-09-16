@@ -55,12 +55,6 @@ export function PeriodSelector() {
       </div>
       <p className="text-[11px] text-muted-foreground/70">
         {PERIOD_DESCRIPTIONS[period]}
-        {isRealtimePeriod(period) && (
-          <span className="inline-flex items-center gap-1 ml-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-emerald-600 dark:text-emerald-400">Live</span>
-          </span>
-        )}
         {isRetrospectivePeriod(period) && (
           <span className="text-violet-500 ml-1">Ретроспектива</span>
         )}

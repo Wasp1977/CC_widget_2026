@@ -115,6 +115,9 @@ function SplitWidgetsInner() {
 
   const isManager = role === 'manager';
 
+  // For employee: determine their queue from the first online agent (mock)
+  const employeeQueue = !isManager ? (agents.find(a => a.status === 'online')?.queue ?? 'Продажи') : undefined;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -131,7 +134,7 @@ function SplitWidgetsInner() {
               <p className="text-[11px] text-muted-foreground">
                 {isManager
                   ? (realtime ? 'Панель менеджера' : 'Ретроспективная аналитика')
-                  : 'Личные показатели'}
+                  : `Личные показатели · ${employeeQueue}`}
               </p>
             </div>
           </div>
@@ -155,23 +158,11 @@ function SplitWidgetsInner() {
 
       {/* Content */}
       <div className="p-4 space-y-4">
-        {/* KPI Numeric Widgets — always visible */}
-        <KpiWidgets queues={queues} agents={agents} />
+        {/* KPI Numeric Widgets */}
+        <KpiWidgets queues={queues} agents={agents} employeeQueue={employeeQueue} />
 
-        {/* Department Indicators — only for Manager */}
-        {isManager && (
-          <DepartmentWidget queues={queues} agents={agents} />
-        )}
-
-        {/* Employee notice */}
-        {!isManager && (
-          <div className="flex items-center gap-3 p-4 rounded-lg border border-dashed border-muted-foreground/20 bg-muted/30">
-            <User className="h-5 w-5 text-muted-foreground/50 shrink-0" />
-            <p className="text-xs text-muted-foreground">
-              Режим сотрудника: данные отделов и SLA доступны только менеджеру
-            </p>
-          </div>
-        )}
+        {/* Department Indicators — same widgets, filtered for employee */}
+        <DepartmentWidget queues={queues} agents={agents} employeeQueue={employeeQueue} />
       </div>
     </div>
   );
