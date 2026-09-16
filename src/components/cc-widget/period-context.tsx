@@ -213,15 +213,23 @@ function generateBars(
 
   switch (period) {
     case '1h': {
-      // 12 bars by 5-minute intervals
-      return Array.from({ length: 12 }, (_, i) => ({
-        label: `:${(i * 5).toString().padStart(2, '0')}`,
-        value: Math.round(
-          baseValue * factor
-          * (0.6 + 0.4 * hourWeight(7 + i * 0.5))  // approximate hour position
-          + (seededRandom(seedBase + i + 500) - 0.5) * variance * factor
-        ),
-      }));
+      // 12 bars by 5-minute intervals — current time on the right, 60 min back
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const startMinutes = currentMinutes - 55; // first bar is 55 min ago
+      return Array.from({ length: 12 }, (_, i) => {
+        const mins = startMinutes + i * 5;
+        const hh = Math.floor(((mins % 1440) + 1440) % 1440 / 60);
+        const mm = ((mins % 60) + 60) % 60;
+        return {
+          label: `${hh.toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`,
+          value: Math.round(
+            baseValue * factor
+            * (0.6 + 0.4 * hourWeight(hh + mm / 60))
+            + (seededRandom(seedBase + i + 500) - 0.5) * variance * factor
+          ),
+        };
+      });
     }
 
     case '1d': {
