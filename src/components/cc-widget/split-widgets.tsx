@@ -7,7 +7,7 @@ import { DepartmentWidget } from './department-widget';
 import { PeriodProvider, usePeriod, isRealtimePeriod } from './period-context';
 import { PeriodSelector } from './period-selector';
 import {
-  LayoutDashboard, PieChart, Layers
+  Briefcase, User
 } from 'lucide-react';
 
 // ---- Types (shared) ----
@@ -103,11 +103,17 @@ function useRealtimeData() {
   return { queues, agents };
 }
 
+// ---- Role type ----
+type Role = 'manager' | 'employee';
+
 // ---- Inner component (needs period context) ----
 function SplitWidgetsInner() {
   const { queues, agents } = useRealtimeData();
   const { period } = usePeriod();
   const realtime = isRealtimePeriod(period);
+  const [role, setRole] = useState<Role>('manager');
+
+  const isManager = role === 'manager';
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,29 +122,28 @@ function SplitWidgetsInner() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <div className={`flex items-center justify-center h-9 w-9 rounded-lg ${realtime ? 'bg-primary' : 'bg-violet-600'} text-primary-foreground`}>
-              <Layers className="h-5 w-5" />
+              {isManager ? <Briefcase className="h-5 w-5" /> : <User className="h-5 w-5" />}
             </div>
             <div>
               <h1 className="text-base font-bold leading-tight">
                 Виджет контакт-центра
               </h1>
               <p className="text-[11px] text-muted-foreground">
-                {realtime ? 'Панель супервизора' : 'Ретроспективная аналитика'}
+                {isManager
+                  ? (realtime ? 'Панель менеджера' : 'Ретроспективная аналитика')
+                  : 'Личные показатели'}
               </p>
             </div>
           </div>
-          <Tabs defaultValue="all" className="w-auto">
+          <Tabs value={role} onValueChange={(v) => setRole(v as Role)} className="w-auto">
             <TabsList className="h-8">
-              <TabsTrigger value="all" className="text-xs gap-1.5 px-3">
-                <LayoutDashboard className="h-3.5 w-3.5" />
-                Все
+              <TabsTrigger value="manager" className="text-xs gap-1.5 px-3">
+                <Briefcase className="h-3.5 w-3.5" />
+                Менеджер
               </TabsTrigger>
-              <TabsTrigger value="numeric" className="text-xs gap-1.5 px-3">
-                Числовые
-              </TabsTrigger>
-              <TabsTrigger value="dept" className="text-xs gap-1.5 px-3">
-                <PieChart className="h-3.5 w-3.5" />
-                Отделы
+              <TabsTrigger value="employee" className="text-xs gap-1.5 px-3">
+                <User className="h-3.5 w-3.5" />
+                Сотрудник
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -150,11 +155,23 @@ function SplitWidgetsInner() {
 
       {/* Content */}
       <div className="p-4 space-y-4">
-        {/* KPI Numeric Widgets — 2 live metrics only */}
+        {/* KPI Numeric Widgets — always visible */}
         <KpiWidgets queues={queues} agents={agents} />
 
-        {/* Department Indicators — Queue pie + SLA donut only */}
-        <DepartmentWidget queues={queues} agents={agents} />
+        {/* Department Indicators — only for Manager */}
+        {isManager && (
+          <DepartmentWidget queues={queues} agents={agents} />
+        )}
+
+        {/* Employee notice */}
+        {!isManager && (
+          <div className="flex items-center gap-3 p-4 rounded-lg border border-dashed border-muted-foreground/20 bg-muted/30">
+            <User className="h-5 w-5 text-muted-foreground/50 shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              Режим сотрудника: данные отделов и SLA доступны только менеджеру
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

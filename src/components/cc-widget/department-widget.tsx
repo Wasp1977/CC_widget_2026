@@ -1,7 +1,6 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
   ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent,
 } from '@/components/ui/chart';
@@ -108,15 +107,9 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <PhoneIncoming className="h-4 w-4 text-blue-500" />
                 Клиенты в очереди по отделам
+                <span className="text-muted-foreground/50 font-normal">· {periodLabel}</span>
+                <span className="text-muted-foreground/50 font-normal">· {totalQueueDepth} всего</span>
               </CardTitle>
-              <div className="flex items-center gap-1.5">
-                <Badge variant="outline" className="text-xs">
-                  {periodLabel}
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  {totalQueueDepth} всего
-                </Badge>
-              </div>
             </div>
           </CardHeader>
           <CardContent className="px-4 pb-4">
@@ -168,10 +161,8 @@ export function DepartmentWidget({ queues, agents }: DepartmentWidgetProps) {
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Clock className="h-4 w-4 text-amber-500" />
                 SLA — доля звонков с ответом в срок, по очередям
+                <span className="text-muted-foreground/50 font-normal">· {periodLabel}</span>
               </CardTitle>
-              <Badge variant="outline" className="text-xs">
-                {periodLabel}
-              </Badge>
             </div>
           </CardHeader>
           <CardContent className="px-4 pb-4">
